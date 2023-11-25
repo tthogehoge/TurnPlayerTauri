@@ -1,12 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::path;
-
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn find_files(dir: &str) -> Vec<path::PathBuf> {
-    let mut files: Vec<path::PathBuf> = Vec::new();
+fn find_files(dir: &str) -> Vec<String> {
+    let mut files: Vec<String> = Vec::new();
 
     let dir = std::fs::read_dir(dir);
     if let Ok(dir) = dir {
@@ -15,8 +13,15 @@ fn find_files(dir: &str) -> Vec<path::PathBuf> {
                 let path = item.path();
                 if path.is_file() {
                     let ext = path.extension();
-                    if ext.is_some() && ext.unwrap() == "mp4" {
-                        files.push(path);
+                    if ext.is_some() {
+                        let ext = ext.unwrap().to_str();
+                        if ext.is_some() {
+                            let ext = ext.unwrap();
+                            if ext=="mp4" || ext=="m4a" {
+                                let pathstr=path.to_string_lossy().to_string();
+                                files.push(pathstr);
+                            }
+                        }
                     }
                 }
             }

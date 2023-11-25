@@ -5,20 +5,39 @@ import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
 import "./App.css";
 
+type Files = Array<string>;
+
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [dir, setDir] = useState("");
   const [url, setUrl] = useState("https://youtu.be/eqZQbFOhCGI");
   const [src, setSrc] = useState<string>("");
+  const [files, setFiles] = useState<Files | null>(null);
 
   async function findFiles() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    var files = await invoke("find_files", { dir });
+    var files = await invoke<Files>("find_files", { dir });
+    setFiles(files);
   }
 
-  async function updateFileName() {
+  const file_list = files ? <ul>
+    {files.map(f => {
+      return <li key={f} onClick={()=>{
+        setSrc(f);
+        updateFileName(f);
+      }}>{f}</li>
+    })
+    }
+  </ul> : null;
+
+  async function updateFileNameDesktop() {
     const desktopPath = await desktopDir();
     const new_url = convertFileSrc(await join(desktopPath, src))
+    setUrl(new_url);
+  }
+
+  async function updateFileName(s:string) {
+    const new_url = convertFileSrc(s)
     setUrl(new_url);
   }
 
@@ -54,6 +73,7 @@ function App() {
         />
         <button type="submit">file find</button>
       </form>
+      {file_list}
 
       <p>{greetMsg}</p>
 
