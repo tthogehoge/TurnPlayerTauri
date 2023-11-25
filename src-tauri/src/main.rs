@@ -5,7 +5,9 @@
 #[derive(Debug, thiserror::Error)]
 enum Error {
   #[error(transparent)]
-  Io(#[from] std::io::Error)
+  Io(#[from] std::io::Error),
+  #[error("other")]
+  Other
 }
 
 // we must manually implement serde::Serialize
@@ -71,9 +73,21 @@ fn get_files() -> Result<Vec<Media>, Error> {
     Ok(files)
 }
 
+#[tauri::command]
+fn get_current_dir() -> Result<String, Error> {
+    let exe_path = std::env::current_exe()?;
+    let dir = exe_path.parent();
+    if let Some(dpath) = dir {
+        let ret = dpath.to_string_lossy().to_string();
+        return Ok(ret);
+    }
+    Err(Error::Other)
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            get_current_dir,
             find_files,
             get_files
             ])

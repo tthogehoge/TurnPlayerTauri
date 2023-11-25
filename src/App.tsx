@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import { desktopDir, join } from "@tauri-apps/api/path";
-import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
+import {
+  BaseDirectory,
+  readTextFile,
+  writeTextFile,
+  exists,
+  createDir,
+} from "@tauri-apps/api/fs";
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
 import "./App.css";
@@ -11,29 +17,89 @@ type Media = {
   name: string,
 };
 
+type Config = {
+  dir: string,
+  path: string,
+  pos: string,
+};
+
 type Files = Array<Media>;
 
+function getDefaultConfig() {
+  let config : Config = {
+    dir:"",
+    path:"path",
+    pos:"pos"
+  };
+  return config;
+}
+
 function App() {
-  const [dir, setDir] = useState("\\\\AP6084BDA9DA4E\\disk1_pt1\\takashi\\radio");
-  const [url, setUrl] = useState("");
-  const [files, setFiles] = useState<Files | null>(null);
+  const [s_dir, setDir] = useState("");
+  const [s_url, setUrl] = useState("");
+  const [s_files, setFiles] = useState<Files | null>(null);
+  const [s_config, setConfig] = useState<Config>(getDefaultConfig());
+
+  // 初回実行
+  useEffect( () => {
+    loadConfig();
+  },[]);
+
+  async function loadConfig() {
+    try {
+      var curdir = await invoke<string>("get_current_dir");
+      // 設定ファイルの読み込み
+      const profileBookStr = await readTextFile("config.json", {
+        dir: BaseDirectory.App,
+      });
+      // パース
+      const configFile = JSON.parse(profileBookStr) as Config;
+      setConfig(configFile);
+    } catch (error) {
+      // 初回はファイルがないのでエラー
+      console.warn(error);
+      setConfig(getDefaultConfig());
+    }
+    setDir(s_config.dir);
+    if(s_config.dir != ""){
+      findFiles();
+    }
+  }
+
+  async function saveConfig() {
+    // ディレクトリ存在チェック
+    const ext = await exists("", { dir: BaseDirectory.App });
+    if (!ext) {
+      await createDir("", { dir: BaseDirectory.App });
+    }
+    // 設定ファイルへの書き出し
+    await writeTextFile("config.json", JSON.stringify(s_config), {
+      dir: BaseDirectory.App,
+    });
+  }
 
   async function findFiles() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    var files = await invoke<Files>("find_files", { dir })
-    .catch( err=> { console.error(err); return null; });
-    setFiles(files);
+    var f = await invoke<Files>("find_files", { dir:s_dir })
+    .catch( err=> {
+      console.error(err);
+      return null;
+    });
+    setFiles(f);
   }
 
   async function getFiles() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    var files = await invoke<Files>("get_files")
-    .catch( err=> { console.error(err); return null; });
-    setFiles(files);
+    var f = await invoke<Files>("get_files")
+    .catch( err=> {
+      console.error(err);
+      return null;
+    });
+    setFiles(f);
   }
 
-  const file_list = files ? <ul>
-    {files.map(f => {
+  const file_list = s_files ? <ul>
+    {s_files.map(f => {
       return <li key={f.path} onClick={()=>{
         updateFileName(f.path);
       }}>{f.name}</li>
@@ -49,19 +115,23 @@ function App() {
   return (
     <div className="container">
       <h1>React Player</h1>
-      <ReactPlayer url={url} controls={true}/>
+      <ReactPlayer url={s_url} controls={true}/>
 
       <form
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
+          s_config.dir = s_dir;
+          setConfig(s_config);
+          saveConfig();
           findFiles();
         }}
       >
         <input
           id="dir-input"
-          onChange={(e) => setDir(e.currentTarget.value)}
+          onChange={ (e) => setDir(e.currentTarget.value) }
           placeholder="Enter a directory..."
+          value={s_dir}
         />
         <button type="submit">find files</button>
       </form>
