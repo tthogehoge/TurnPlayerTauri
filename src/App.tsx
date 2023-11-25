@@ -66,6 +66,16 @@ function App() {
         <button type="submit">find files</button>
       </form>
 
+      <form
+        className="row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          getFiles();
+        }}
+      >
+        <button type="submit">get files</button>
+      </form>
+
       {file_list}
 
     </div>

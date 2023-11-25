@@ -18,13 +18,17 @@ impl serde::Serialize for Error {
   }
 }
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize,Clone)]
 struct Media {
     path: String,
     name: String,
 }
 
 use serde::{Serialize, Deserialize};
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
+
+static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -50,13 +54,29 @@ fn find_files(dir: &str) -> Result<Vec<Media>, Error> {
             }
         }
     }
+    if let Ok(mut ary) = MEDIAS.lock() {
+        ary.clone_from(&files);
+    }
 
+    Ok(files)
+}
+
+#[tauri::command]
+fn get_files() -> Result<Vec<Media>, Error> {
+    let files: Vec<Media> = Vec::new();
+    if let Ok(ary) = MEDIAS.lock() {
+        let files = ary.clone();
+        return Ok(files);
+    }
     Ok(files)
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![find_files])
+        .invoke_handler(tauri::generate_handler![
+            find_files,
+            get_files
+            ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
