@@ -18,10 +18,18 @@ impl serde::Serialize for Error {
   }
 }
 
+#[derive(Serialize,Deserialize)]
+struct Media {
+    path: String,
+    name: String,
+}
+
+use serde::{Serialize, Deserialize};
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn find_files(dir: &str) -> Result<Vec<String>, Error> {
-    let mut files: Vec<String> = Vec::new();
+fn find_files(dir: &str) -> Result<Vec<Media>, Error> {
+    let mut files: Vec<Media> = Vec::new();
 
     let readdir = std::fs::read_dir(dir)?; 
     for item in readdir.into_iter() {
@@ -31,7 +39,13 @@ fn find_files(dir: &str) -> Result<Vec<String>, Error> {
                 let ext = ext.to_string_lossy().to_string();
                 if ext == "mp4" || ext == "m4a" {
                     let pathstr=path.to_string_lossy().to_string();
-                    files.push(pathstr);
+                    if let Some(filename) = path.file_name() {
+                        let media = Media{
+                            path: pathstr,
+                            name: filename.to_string_lossy().to_string(),
+                        };
+                        files.push(media);
+                    }
                 }
             }
         }

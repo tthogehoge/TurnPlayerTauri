@@ -1,15 +1,21 @@
 import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import { desktopDir, join } from "@tauri-apps/api/path";
+import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
 import "./App.css";
 
-type Files = Array<string>;
+type Media = {
+  path: string,
+  name: string,
+};
+
+type Files = Array<Media>;
 
 function App() {
-  const [dir, setDir] = useState("");
-  const [url, setUrl] = useState("https://youtu.be/eqZQbFOhCGI");
+  const [dir, setDir] = useState("\\\\AP6084BDA9DA4E\\disk1_pt1\\takashi\\radio");
+  const [url, setUrl] = useState("");
   const [files, setFiles] = useState<Files | null>(null);
 
   async function findFiles() {
@@ -19,11 +25,18 @@ function App() {
     setFiles(files);
   }
 
+  async function getFiles() {
+    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+    var files = await invoke<Files>("get_files")
+    .catch( err=> { console.error(err); return null; });
+    setFiles(files);
+  }
+
   const file_list = files ? <ul>
     {files.map(f => {
-      return <li key={f} onClick={()=>{
-        updateFileName(f);
-      }}>{f}</li>
+      return <li key={f.path} onClick={()=>{
+        updateFileName(f.path);
+      }}>{f.name}</li>
     })
     }
   </ul> : null;
@@ -50,7 +63,7 @@ function App() {
           onChange={(e) => setDir(e.currentTarget.value)}
           placeholder="Enter a directory..."
         />
-        <button type="submit">file find</button>
+        <button type="submit">find files</button>
       </form>
 
       {file_list}
