@@ -1,33 +1,43 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+// create the error type that represents all errors possible in our program
+#[derive(Debug, thiserror::Error)]
+enum Error {
+  #[error(transparent)]
+  Io(#[from] std::io::Error)
+}
+
+// we must manually implement serde::Serialize
+impl serde::Serialize for Error {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: serde::ser::Serializer,
+  {
+    serializer.serialize_str(self.to_string().as_ref())
+  }
+}
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn find_files(dir: &str) -> Vec<String> {
+fn find_files(dir: &str) -> Result<Vec<String>, Error> {
     let mut files: Vec<String> = Vec::new();
 
-    let dir = std::fs::read_dir(dir);
-    if let Ok(dir) = dir {
-        for item in dir.into_iter() {
-            if let Ok(item) = item {
-                let path = item.path();
-                if path.is_file() {
-                    let ext = path.extension();
-                    if ext.is_some() {
-                        let ext = ext.unwrap().to_str();
-                        if ext.is_some() {
-                            let ext = ext.unwrap();
-                            if ext=="mp4" || ext=="m4a" {
-                                let pathstr=path.to_string_lossy().to_string();
-                                files.push(pathstr);
-                            }
-                        }
-                    }
+    let readdir = std::fs::read_dir(dir)?; 
+    for item in readdir.into_iter() {
+        let path = item?.path();
+        if path.is_file() {
+            if let Some(ext) = path.extension() {
+                let ext = ext.to_string_lossy().to_string();
+                if ext == "mp4" || ext == "m4a" {
+                    let pathstr=path.to_string_lossy().to_string();
+                    files.push(pathstr);
                 }
             }
         }
     }
-    files
+
+    Ok(files)
 }
 
 fn main() {
