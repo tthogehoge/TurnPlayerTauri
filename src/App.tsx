@@ -1,20 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
+import { desktopDir, join } from "@tauri-apps/api/path";
+import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
+import ReactPlayer from "react-player";
 import "./App.css";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [dir, setDir] = useState("");
+  const [url, setUrl] = useState("https://youtu.be/eqZQbFOhCGI");
+  const [src, setSrc] = useState<string>("");
 
-  async function greet() {
+  async function findFiles() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+    var files = await invoke("find_files", { dir });
+  }
+
+  async function updateFileName() {
+    const desktopPath = await desktopDir();
+    const new_url = convertFileSrc(await join(desktopPath, src))
+    setUrl(new_url);
   }
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
+      <h1>Tauri Testへようこそ!</h1>
 
       <div className="row">
         <a href="https://vitejs.dev" target="_blank">
@@ -34,18 +44,31 @@ function App() {
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          greet();
+          findFiles();
         }}
       >
         <input
           id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
+          onChange={(e) => setDir(e.currentTarget.value)}
+          placeholder="Enter a directory..."
         />
-        <button type="submit">Greet</button>
+        <button type="submit">file find</button>
       </form>
 
       <p>{greetMsg}</p>
+
+      <>
+        <ReactPlayer url={url} controls={true}/>
+        <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          updateFileName();
+        }}
+        >
+        <input type="text" value={src} onChange={e => setSrc(e.target.value)}/>
+        <button type="submit">Open</button>
+        </form>
+      </>
     </div>
   );
 }
