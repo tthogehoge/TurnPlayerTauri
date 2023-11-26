@@ -66,7 +66,7 @@ fn find_files(dir: &str) -> Result<Vec<Media>, Error> {
                     if let Some(filename) = path.file_name() {
                         let filename = filename.to_string_lossy().to_string();
                         let mut dt = tstring;
-                        let re = Regex::new(r"(\d{8})");
+                        let re = Regex::new(r"(\d{14})");
                         if let Ok(re) = re {
                             match re.captures(&filename) {
                                 Some(caps) => {
