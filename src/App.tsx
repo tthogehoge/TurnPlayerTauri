@@ -22,7 +22,7 @@ type Files = Array<Media>;
 // 設定構造体
 type Config = {
   dir: string,
-  path: string,
+  media: Media,
   pos: number,
 };
 
@@ -30,7 +30,7 @@ type Config = {
 function getDefaultConfig() {
   let config : Config = {
     dir:"",
-    path:"path",
+    media: {path:"",name:""},
     pos:0
   };
   return config;
@@ -76,8 +76,8 @@ function App() {
     if(config.dir != ""){
       findFiles(config.dir);
     }
-    if(config.path != ""){
-      updateFileName(config.path);
+    if(config.media.path != ""){
+      updateFileName(config.media);
     }
     setLoaded(true);
   }
@@ -151,10 +151,10 @@ function App() {
 
   async function setMedia(media:Media){
     s_config.pos = 0;
-    s_config.path = media.path;
+    s_config.media = media;
     setConfig(s_config);
     saveConfig();
-    updateFileName(media.path);
+    updateFileName(media);
   }
 
   const file_list = s_files ? <ul>
@@ -166,9 +166,9 @@ function App() {
     }
   </ul> : null;
 
-  async function updateFileName(s:string) {
-    setPlaypath(s);
-    const new_url = convertFileSrc(s)
+  async function updateFileName(media:Media) {
+    setPlaypath(media.path);
+    const new_url = convertFileSrc(media.path)
     setUrl(new_url);
   }
 
