@@ -6,6 +6,16 @@
 enum Error {
   #[error(transparent)]
   Io(#[from] std::io::Error),
+  /*
+  #[error(transparent)]
+  Regex_From(#[from] <regex::Regex as TryFrom>::Error),
+  #[error(transparent)]
+  Regex_Into(#[from] <regex::Regex as TryInto>::Error),
+  #[error(transparent)]
+  Regex_Future(#[from] <regex::Regex as futures_core::future::TryFuture>::Error),
+  #[error(transparent)]
+  Regex_Stream(#[from] <regex::Regex as futures_core::stream::TryStream>::Error),
+  */
   #[error("other")]
   Other
 }
@@ -24,11 +34,15 @@ impl serde::Serialize for Error {
 struct Media {
     path: String,
     name: String,
+    date: String,
 }
 
 use serde::{Serialize, Deserialize};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
+use regex::Regex;
+use chrono::DateTime;
+use chrono::Local;
 
 static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 
@@ -41,14 +55,31 @@ fn find_files(dir: &str) -> Result<Vec<Media>, Error> {
     for item in readdir.into_iter() {
         let path = item?.path();
         if path.is_file() {
+            let meta = path.metadata()?;
+            let mtime = meta.modified()?;
+            let mtime: DateTime<Local> = mtime.into();
+            let tstring = mtime.format("%Y%m%d%H%M%S").to_string();
             if let Some(ext) = path.extension() {
                 let ext = ext.to_string_lossy().to_string();
                 if ext == "mp4" || ext == "m4a" {
                     let pathstr=path.to_string_lossy().to_string();
                     if let Some(filename) = path.file_name() {
+                        let filename = filename.to_string_lossy().to_string();
+                        let mut dt = tstring;
+                        let re = Regex::new(r"(\d{8})");
+                        if let Ok(re) = re {
+                            match re.captures(&filename) {
+                                Some(caps) => {
+                                    dt = caps[0].to_string();
+                                },
+                                None => {
+                                }
+                            }
+                        }
                         let media = Media{
                             path: pathstr,
-                            name: filename.to_string_lossy().to_string(),
+                            name: filename,
+                            date: dt,
                         };
                         files.push(media);
                     }
@@ -56,6 +87,9 @@ fn find_files(dir: &str) -> Result<Vec<Media>, Error> {
             }
         }
     }
+    files.sort_by(|a,b|
+        a.date.cmp(&b.date)
+    );
     if let Ok(mut ary) = MEDIAS.lock() {
         ary.clone_from(&files);
     }

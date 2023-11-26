@@ -15,6 +15,7 @@ import "./App.css";
 type Media = {
   path: string,
   name: string,
+  date: string,
 };
 
 type Files = Array<Media>;
@@ -30,7 +31,7 @@ type Config = {
 function getDefaultConfig() {
   let config : Config = {
     dir:"",
-    media: {path:"",name:""},
+    media: {path:"",name:"",date:""},
     pos:0
   };
   return config;
@@ -44,7 +45,7 @@ function App() {
   const [s_url, setUrl] = useState("");
   const [s_loaded, setLoaded] = useState(false);
   const [s_playing, setPlaying] = useState(false);
-  const [s_playpath, setPlaypath] = useState("");
+  const [s_playname, setPlayname] = useState("");
   const [s_files, setFiles] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
 
@@ -116,7 +117,7 @@ function App() {
   async function onPlayerEnded() {
     if(s_files){
       let idx = s_files.findIndex((e)=>(
-        e.path == s_playpath
+        e.name == s_playname
       ));
       if(idx!=-1 && idx != undefined){
         idx++;
@@ -167,7 +168,7 @@ function App() {
   </ul> : null;
 
   async function updateFileName(media:Media) {
-    setPlaypath(media.path);
+    setPlayname(media.name);
     const new_url = convertFileSrc(media.path)
     setUrl(new_url);
   }
@@ -175,7 +176,7 @@ function App() {
   return (
     <div className="container">
       <h1>React Player</h1>
-      <p>{s_playpath}</p>
+      <p>{s_playname}</p>
       <ReactPlayer
         ref={player}
         url={s_url}
