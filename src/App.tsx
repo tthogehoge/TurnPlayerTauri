@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, createRef } from "react";
 //import reactLogo from "./assets/react.svg";
 //import { desktopDir, join } from "@tauri-apps/api/path";
 import {
@@ -24,7 +24,7 @@ import Button from "@mui/material/Button";
 import Input from "@mui/material/Input";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 
 type Media = {
@@ -69,6 +69,7 @@ function App() {
       mode,
     },
   });
+  const scroll_ref = createRef<HTMLDivElement>();
 
   // react player
   const player = useRef<ReactPlayer>(null);
@@ -169,6 +170,14 @@ function App() {
       return null;
     });
     setFiles(f);
+    scroollToRef();
+  }
+
+  async function scroollToRef(){
+    scroll_ref!.current!.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
   }
 
   async function setMedia(media:Media){
@@ -181,15 +190,13 @@ function App() {
 
   const file_list = s_files ? <List>
     {s_files.map(f => {
-      let sel = false;
-      if(f.name == s_config.media.name){
-        sel = true;
-      }
-      return <ListItem button selected={sel}>
+      let sel = (f.name == s_config.media.name);
+      let ref = sel ? scroll_ref : null;
+      return <ListItemButton selected={sel} ref={ref}>
       <ListItemText key={f.path} onClick={()=>{
         setMedia(f);
       }}>{f.name}</ListItemText>
-      </ListItem>
+      </ListItemButton>
     })
     }
   </List> : null;
