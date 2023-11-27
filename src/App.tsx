@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import reactLogo from "./assets/react.svg";
-import { desktopDir, join } from "@tauri-apps/api/path";
+//import reactLogo from "./assets/react.svg";
+//import { desktopDir, join } from "@tauri-apps/api/path";
 import {
   BaseDirectory,
   readTextFile,
@@ -10,7 +10,22 @@ import {
 } from "@tauri-apps/api/fs";
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
-import "./App.css";
+import {
+  // Box,
+  createTheme,
+  PaletteMode,
+  // Stack,
+  ThemeProvider,
+} from "@mui/material";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Container from "@mui/material/Container";
+import Button from "@mui/material/Button";
+import Input from "@mui/material/Input";
+import Typography from "@mui/material/Typography";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
 
 type Media = {
   path: string,
@@ -48,6 +63,12 @@ function App() {
   const [s_playname, setPlayname] = useState("");
   const [s_files, setFiles] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
+  const [mode, /*setMode*/] = useState<PaletteMode>("light");
+  const darkTheme = createTheme({
+    palette: {
+      mode,
+    },
+  });
 
   // react player
   const player = useRef<ReactPlayer>(null);
@@ -158,14 +179,20 @@ function App() {
     updateFileName(media);
   }
 
-  const file_list = s_files ? <ul>
+  const file_list = s_files ? <List>
     {s_files.map(f => {
-      return <li key={f.path} onClick={()=>{
+      let sel = false;
+      if(f.name == s_config.media.name){
+        sel = true;
+      }
+      return <ListItem button selected={sel}>
+      <ListItemText key={f.path} onClick={()=>{
         setMedia(f);
-      }}>{f.name}</li>
+      }}>{f.name}</ListItemText>
+      </ListItem>
     })
     }
-  </ul> : null;
+  </List> : null;
 
   async function updateFileName(media:Media) {
     setPlayname(media.name);
@@ -174,8 +201,13 @@ function App() {
   }
 
   return (
-    <div className="container">
-      <h1>React Player</h1>
+    <ThemeProvider theme={darkTheme}>
+      <AppBar position="static" color="primary">
+        <Toolbar>
+          <Typography>React Player</Typography>
+        </Toolbar>
+      </AppBar>
+    <Container>
       <p>{s_playname}</p>
       <ReactPlayer
         ref={player}
@@ -187,38 +219,32 @@ function App() {
         onPause={()=>{onPlayerPause()}}
       />
 
-      <form
-        className="row"
-        onSubmit={(e) => {
+      <Input
+        id="dir-input"
+        onChange={ (e) => setDir(e.currentTarget.value) }
+        placeholder="Enter a directory..."
+        value={s_dir}
+      />
+      <Button variant="contained" type="submit"
+        onClick={(e) => {
           e.preventDefault();
           s_config.dir = s_dir;
           setConfig(s_config);
           saveConfig();
           findFiles(s_dir);
         }}
-      >
-        <input
-          id="dir-input"
-          onChange={ (e) => setDir(e.currentTarget.value) }
-          placeholder="Enter a directory..."
-          value={s_dir}
-        />
-        <button type="submit">find files</button>
-      </form>
+      >find files</Button>
 
-      <form
-        className="row"
-        onSubmit={(e) => {
+      <Button variant="contained" type="submit"
+        onClick={(e) => {
           e.preventDefault();
           getFiles();
         }}
-      >
-        <button type="submit">get files</button>
-      </form>
+      >get files</Button>
 
       {file_list}
-
-    </div>
+    </Container>
+    </ThemeProvider>
   );
 }
 
