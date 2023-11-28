@@ -37,6 +37,12 @@ struct Media {
     date: String,
 }
 
+#[derive(Serialize,Deserialize,Clone)]
+struct SSetting {
+    dir: String,
+    str: String,
+}
+
 use serde::{Serialize, Deserialize};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
@@ -48,10 +54,10 @@ static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn find_files(dir: &str) -> Result<Vec<Media>, Error> {
+fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
     let mut files: Vec<Media> = Vec::new();
 
-    let readdir = std::fs::read_dir(dir)?; 
+    let readdir = std::fs::read_dir(set.dir)?; 
     for item in readdir.into_iter() {
         let path = item?.path();
         if path.is_file() {
@@ -65,23 +71,26 @@ fn find_files(dir: &str) -> Result<Vec<Media>, Error> {
                     let pathstr=path.to_string_lossy().to_string();
                     if let Some(filename) = path.file_name() {
                         let filename = filename.to_string_lossy().to_string();
-                        let mut dt = tstring;
-                        let re = Regex::new(r"(\d{14})");
-                        if let Ok(re) = re {
-                            match re.captures(&filename) {
-                                Some(caps) => {
-                                    dt = caps[0].to_string();
-                                },
-                                None => {
+                        let ok = filename.contains(&set.str);
+                        if ok {
+                            let mut dt = tstring;
+                            let re = Regex::new(r"(\d{14})");
+                            if let Ok(re) = re {
+                                match re.captures(&filename) {
+                                    Some(caps) => {
+                                        dt = caps[0].to_string();
+                                    },
+                                    None => {
+                                    }
                                 }
                             }
+                            let media = Media{
+                                path: pathstr,
+                                name: filename,
+                                date: dt,
+                            };
+                            files.push(media);
                         }
-                        let media = Media{
-                            path: pathstr,
-                            name: filename,
-                            date: dt,
-                        };
-                        files.push(media);
                     }
                 }
             }

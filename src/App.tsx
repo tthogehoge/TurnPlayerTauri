@@ -27,6 +27,11 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 
+type SSetting = {
+  dir: string,
+  str: string,
+};
+
 type Media = {
   path: string,
   name: string,
@@ -37,7 +42,7 @@ type Files = Array<Media>;
 
 // 設定構造体
 type Config = {
-  dir: string,
+  set: SSetting,
   media: Media,
   pos: number,
 };
@@ -45,7 +50,7 @@ type Config = {
 // 設定デフォルト値
 function getDefaultConfig() {
   let config : Config = {
-    dir:"",
+    set:{dir:"",str:""},
     media: {path:"",name:"",date:""},
     pos:0
   };
@@ -57,6 +62,7 @@ const CONFIG_FILE : string = "config.json"
 
 function App() {
   const [s_dir, setDir] = useState("");
+  const [s_str, setStr] = useState("");
   const [s_url, setUrl] = useState("");
   const [s_loaded, setLoaded] = useState(false);
   const [s_playing, setPlaying] = useState(false);
@@ -95,9 +101,10 @@ function App() {
       console.warn(error);
       setConfig(getDefaultConfig());
     }
-    setDir(config.dir);
-    if(config.dir != ""){
-      findFiles(config.dir);
+    setDir(config.set.dir);
+    setStr(config.set.str);
+    if(config.set.dir != ""){
+      findFiles(config.set);
     }
     if(config.media.path != ""){
       updateFileName(config.media);
@@ -152,9 +159,9 @@ function App() {
     }
   }
 
-  async function findFiles(dir:string) {
+  async function findFiles(set:SSetting) {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    var f = await invoke<Files>("find_files", { dir })
+    var f = await invoke<Files>("find_files", { set })
     .catch( err=> {
       console.error(err);
       return null;
@@ -192,8 +199,8 @@ function App() {
     {s_files.map(f => {
       let sel = (f.name == s_config.media.name);
       let ref = sel ? scroll_ref : null;
-      return <ListItemButton selected={sel} ref={ref}>
-      <ListItemText key={f.path} onClick={()=>{
+      return <ListItemButton key={f.path} selected={sel} ref={ref}>
+      <ListItemText onClick={()=>{
         setMedia(f);
       }}>{f.name}</ListItemText>
       </ListItemButton>
@@ -226,19 +233,28 @@ function App() {
         onPause={()=>{onPlayerPause()}}
       />
 
+      search directory
       <Input
         id="dir-input"
         onChange={ (e) => setDir(e.currentTarget.value) }
         placeholder="Enter a directory..."
         value={s_dir}
       />
+      search string
+      <Input
+        id="str-input"
+        onChange={ (e) => setStr(e.currentTarget.value) }
+        placeholder="Enter a string..."
+        value={s_str}
+      />
       <Button variant="contained" type="submit"
         onClick={(e) => {
           e.preventDefault();
-          s_config.dir = s_dir;
+          s_config.set.dir = s_dir;
+          s_config.set.str = s_str;
           setConfig(s_config);
           saveConfig();
-          findFiles(s_dir);
+          findFiles(s_config.set);
         }}
       >find files</Button>
 
