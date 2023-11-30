@@ -26,19 +26,23 @@ import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
+import { FileList } from "./FileList";
 
 type SSetting = {
   dir: string,
   str: string,
 };
 
-type Media = {
+export type Media = {
   path: string,
   name: string,
   date: string,
 };
 
-type Files = Array<Media>;
+export type Files = Array<Media>;
+
+export type FuncSetMedia = (media:Media) => void;
+
 
 // 設定構造体
 type Config = {
@@ -110,6 +114,10 @@ function App() {
       updateFileName(config.media);
     }
     setLoaded(true);
+  }
+
+  function funcSetMedia(media:Media){
+    setMedia(media);
   }
 
   async function saveConfig() {
@@ -195,19 +203,6 @@ function App() {
     updateFileName(media);
   }
 
-  const file_list = s_files ? <List>
-    {s_files.map(f => {
-      let sel = (f.name == s_config.media.name);
-      let ref = sel ? scroll_ref : null;
-      return <ListItemButton key={f.path} selected={sel} ref={ref}>
-      <ListItemText onClick={()=>{
-        setMedia(f);
-      }}>{f.name}</ListItemText>
-      </ListItemButton>
-    })
-    }
-  </List> : null;
-
   async function updateFileName(media:Media) {
     setPlayname(media.name);
     const new_url = convertFileSrc(media.path)
@@ -265,7 +260,7 @@ function App() {
         }}
       >get files</Button>
 
-      {file_list}
+      <FileList files={s_files} name={s_config.media.name} funcsetmedia={funcSetMedia} ref={scroll_ref} />
     </Container>
     </ThemeProvider>
   );
