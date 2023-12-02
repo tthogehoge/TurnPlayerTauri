@@ -31,40 +31,39 @@ import { FileList } from "./FileList";
 import RenderInputAndButton from "./RenderInputAndButton";
 
 export type SSetting = {
-  dir: string,
-  str: string,
+  dir: string;
+  str: string;
 };
 
 export type Media = {
-  path: string,
-  name: string,
-  date: string,
+  path: string;
+  name: string;
+  date: string;
 };
 
 export type Files = Array<Media>;
 
-export type FuncSetMedia = (media:Media) => void;
-
+export type FuncSetMedia = (media: Media) => void;
 
 // 設定構造体
 type Config = {
-  set: SSetting,
-  media: Media,
-  pos: number,
+  set: SSetting;
+  media: Media;
+  pos: number;
 };
 
 // 設定デフォルト値
 function getDefaultConfig() {
-  let config : Config = {
-    set:{dir:"",str:""},
-    media: {path:"",name:"",date:""},
-    pos:0
+  let config: Config = {
+    set: { dir: "", str: "" },
+    media: { path: "", name: "", date: "" },
+    pos: 0,
   };
   return config;
 }
 
 // 設定ファイル
-const CONFIG_FILE : string = "config.json"
+const CONFIG_FILE: string = "config.json";
 
 function App() {
   const [s_dir, setDir] = useState("");
@@ -75,7 +74,7 @@ function App() {
   const [s_playname, setPlayname] = useState("");
   const [s_files, setFiles] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
-  const [mode, /*setMode*/] = useState<PaletteMode>("light");
+  const [mode /*setMode*/] = useState<PaletteMode>("light");
   const darkTheme = createTheme({
     palette: {
       mode,
@@ -87,9 +86,9 @@ function App() {
   const player = useRef<ReactPlayer>(null);
 
   // 初回実行
-  useEffect( () => {
+  useEffect(() => {
     loadConfig();
-  },[]);
+  }, []);
 
   async function loadConfig() {
     var config = s_config;
@@ -109,16 +108,16 @@ function App() {
     }
     setDir(config.set.dir);
     setStr(config.set.str);
-    if(config.set.dir != ""){
+    if (config.set.dir != "") {
       findFiles(config.set);
     }
-    if(config.media.path != ""){
+    if (config.media.path != "") {
       updateFileName(config.media);
     }
     setLoaded(true);
   }
 
-  function funcSetMedia(media:Media){
+  function funcSetMedia(media: Media) {
     setMedia(media);
     setPlaying(true);
     scroollToTop();
@@ -137,10 +136,10 @@ function App() {
   }
 
   async function onPlayerReady() {
-    if(s_loaded){
+    if (s_loaded) {
       setLoaded(false);
-      if(player.current){
-        if(s_config.pos != 0){
+      if (player.current) {
+        if (s_config.pos != 0) {
           player.current.seekTo(s_config.pos, "seconds");
         }
       }
@@ -148,7 +147,7 @@ function App() {
   }
 
   async function onPlayerPause() {
-    if(player.current){
+    if (player.current) {
       s_config.pos = player.current.getCurrentTime();
       setConfig(s_config);
       saveConfig();
@@ -156,13 +155,11 @@ function App() {
   }
 
   async function onPlayerEnded() {
-    if(s_files){
-      let idx = s_files.findIndex((e)=>(
-        e.name == s_playname
-      ));
-      if(idx!=-1 && idx != undefined){
+    if (s_files) {
+      let idx = s_files.findIndex((e) => e.name == s_playname);
+      if (idx != -1 && idx != undefined) {
         idx++;
-        if(idx >= s_files.length){
+        if (idx >= s_files.length) {
           idx = 0;
         }
         setMedia(s_files[idx]);
@@ -171,10 +168,9 @@ function App() {
     }
   }
 
-  async function findFiles(set:SSetting) {
+  async function findFiles(set: SSetting) {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    var f = await invoke<Files>("find_files", { set })
-    .catch( err=> {
+    var f = await invoke<Files>("find_files", { set }).catch((err) => {
       console.error(err);
       return null;
     });
@@ -183,8 +179,7 @@ function App() {
 
   async function getFiles() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    var f = await invoke<Files>("get_files")
-    .catch( err=> {
+    var f = await invoke<Files>("get_files").catch((err) => {
       console.error(err);
       return null;
     });
@@ -192,21 +187,21 @@ function App() {
     scroollToRef();
   }
 
-  async function scroollToTop(){
+  async function scroollToTop() {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   }
 
-  async function scroollToRef(){
+  async function scroollToRef() {
     scroll_ref!.current!.scrollIntoView({
       behavior: "smooth",
-      block: "center"
+      block: "center",
     });
   }
 
-  async function setMedia(media:Media){
+  async function setMedia(media: Media) {
     s_config.pos = 0;
     s_config.media = media;
     setConfig(s_config);
@@ -214,9 +209,9 @@ function App() {
     updateFileName(media);
   }
 
-  async function updateFileName(media:Media) {
+  async function updateFileName(media: Media) {
     setPlayname(media.name);
-    const new_url = convertFileSrc(media.path)
+    const new_url = convertFileSrc(media.path);
     setUrl(new_url);
   }
 
@@ -227,33 +222,44 @@ function App() {
           <Typography>React Player</Typography>
         </Toolbar>
       </AppBar>
-    <Container>
-      <p>{s_playname}</p>
-      <ReactPlayer
-        ref={player}
-        url={s_url}
-        playing={s_playing}
-        controls={true}
-        onReady={()=>{onPlayerReady()}}
-        onEnded={()=>{onPlayerEnded()}}
-        onPause={()=>{onPlayerPause()}}
-      />
+      <Container>
+        <p>{s_playname}</p>
+        <ReactPlayer
+          ref={player}
+          url={s_url}
+          playing={s_playing}
+          controls={true}
+          onReady={() => {
+            onPlayerReady();
+          }}
+          onEnded={() => {
+            onPlayerEnded();
+          }}
+          onPause={() => {
+            onPlayerPause();
+          }}
+        />
 
-      <Divider />
+        <Divider />
 
-      <RenderInputAndButton
-        dir={s_dir}
-        str={s_str}
-        setDir={setDir}
-        setStr={setStr}
-        findFiles={findFiles}
-        getFiles={getFiles}
-      />
+        <RenderInputAndButton
+          dir={s_dir}
+          str={s_str}
+          setDir={setDir}
+          setStr={setStr}
+          findFiles={findFiles}
+          getFiles={getFiles}
+        />
 
-      <Divider />
+        <Divider />
 
-      <FileList files={s_files} name={s_config.media.name} funcsetmedia={funcSetMedia} ref={scroll_ref} />
-    </Container>
+        <FileList
+          files={s_files}
+          name={s_config.media.name}
+          funcsetmedia={funcSetMedia}
+          ref={scroll_ref}
+        />
+      </Container>
     </ThemeProvider>
   );
 }

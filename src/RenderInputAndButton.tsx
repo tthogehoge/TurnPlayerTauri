@@ -4,12 +4,12 @@ import { Box, Input, Button } from "@mui/material";
 import { SSetting } from "./App";
 
 type RenderInputAndButtonProps = {
-  dir: string,
-  str: string,
-  setDir: (dir: string) => void,
-  setStr: (str: string) => void,
-  findFiles: (set:SSetting) => void,
-  getFiles: () => void
+  dir: string;
+  str: string;
+  setDir: (dir: string) => void;
+  setStr: (str: string) => void;
+  findFiles: (set: SSetting) => void;
+  getFiles: () => void;
 };
 
 const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
@@ -18,7 +18,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
   setDir,
   setStr,
   findFiles,
-  getFiles
+  getFiles,
 }) => {
   return (
     <>
@@ -43,7 +43,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
         type="submit"
         onClick={(e) => {
           e.preventDefault();
-          findFiles({dir, str});
+          findFiles({ dir, str });
         }}
       >
         find files
