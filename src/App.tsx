@@ -28,8 +28,9 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import { FileList } from "./FileList";
+import RenderInputAndButton from "./RenderInputAndButton";
 
-type SSetting = {
+export type SSetting = {
   dir: string,
   str: string,
 };
@@ -219,61 +220,6 @@ function App() {
     setUrl(new_url);
   }
 
-  // InputとButtonを関数にまとめる
-  function renderInputAndButton(
-    dir: string,
-    str: string,
-    setDir: (dir: string) => void,
-    setStr: (str: string) => void,
-    findFiles: (set:SSetting) => void,
-    getFiles: () => void
-  ) {
-    return (
-      <>
-        <Box>search directory</Box>
-        <Input
-          id="dir-input"
-          onChange={(e) => setDir(e.currentTarget.value)}
-          placeholder="Enter a directory..."
-          value={dir}
-          fullWidth={true}
-        />
-        <Box>search string</Box>
-        <Input
-          id="str-input"
-          onChange={(e) => setStr(e.currentTarget.value)}
-          placeholder="Enter a string..."
-          value={str}
-          fullWidth={true}
-        />
-        <Button
-          variant="contained"
-          type="submit"
-          onClick={(e) => {
-            e.preventDefault();
-            s_config.set.dir = s_dir;
-            s_config.set.str = s_str;
-            setConfig(s_config);
-            saveConfig();
-            findFiles(s_config.set);
-          }}
-        >
-          find files
-        </Button>
-        <Button
-          variant="contained"
-          type="submit"
-          onClick={(e) => {
-            e.preventDefault();
-            getFiles();
-          }}
-        >
-          get files
-        </Button>
-      </>
-    );
-  }
-
   return (
     <ThemeProvider theme={darkTheme}>
       <AppBar position="static" color="primary">
@@ -295,15 +241,14 @@ function App() {
 
       <Divider />
 
-      {// renderInputAndButton関数を呼び出す側のコード
-      renderInputAndButton(
-        s_dir,
-        s_str,
-        setDir,
-        setStr,
-        findFiles,
-        getFiles
-      )}
+      <RenderInputAndButton
+        dir={s_dir}
+        str={s_str}
+        setDir={setDir}
+        setStr={setStr}
+        findFiles={findFiles}
+        getFiles={getFiles}
+      />
 
       <Divider />
 
