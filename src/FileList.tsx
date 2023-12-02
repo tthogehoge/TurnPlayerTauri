@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
+import { v4 as uuidv4 } from 'uuid';
 import { Files, FuncSetMedia } from "./App";
 
 type Props = {
@@ -21,7 +22,7 @@ export const FileList = forwardRef<HTMLDivElement, Props>(
             let sel = f.name == name;
             let refsel = sel ? ref : null;
             return (
-              <ListItemButton key={f.path} selected={sel} ref={refsel}>
+              <ListItemButton key={uuidv4()} selected={sel} ref={refsel}>
                 <ListItemText
                   onClick={() => {
                     funcsetmedia(f);

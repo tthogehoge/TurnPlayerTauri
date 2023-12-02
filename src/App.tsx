@@ -11,7 +11,6 @@ import {
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
 import {
-  Box,
   createTheme,
   PaletteMode,
   Divider,
@@ -21,12 +20,11 @@ import {
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Container from "@mui/material/Container";
-import Button from "@mui/material/Button";
-import Input from "@mui/material/Input";
+import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Adjust from "@mui/icons-material/Adjust";
 import { FileList } from "./FileList";
 import RenderInputAndButton from "./RenderInputAndButton";
 
@@ -75,6 +73,7 @@ function App() {
   const [s_files, setFiles] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
   const [mode /*setMode*/] = useState<PaletteMode>("light");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const darkTheme = createTheme({
     palette: {
       mode,
@@ -121,6 +120,7 @@ function App() {
     setMedia(media);
     setPlaying(true);
     scroollToTop();
+    setDrawerOpen(false);
   }
 
   async function saveConfig() {
@@ -184,6 +184,7 @@ function App() {
       return null;
     });
     setFiles(f);
+    setDrawerOpen(true);
     scroollToRef();
   }
 
@@ -217,13 +218,21 @@ function App() {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AppBar position="static" color="primary">
+      <AppBar position="fixed" color="primary">
         <Toolbar>
-          <Typography>React Player</Typography>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography>{s_playname}</Typography>
         </Toolbar>
       </AppBar>
       <Container>
-        <p>{s_playname}</p>
         <ReactPlayer
           ref={player}
           url={s_url}
@@ -253,12 +262,42 @@ function App() {
 
         <Divider />
 
-        <FileList
-          files={s_files}
-          name={s_config.media.name}
-          funcsetmedia={funcSetMedia}
-          ref={scroll_ref}
-        />
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+        >
+          <AppBar position="sticky" color="primary">
+            <Toolbar>
+              <IconButton
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                onClick={() => setDrawerOpen(false)}
+                sx={{ marginRight: "auto" }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <IconButton
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                onClick={() => scroollToRef()}
+                sx={{ marginRight: "auto" }}
+              >
+                <Adjust />
+              </IconButton>
+            </Toolbar>
+          </AppBar>
+          <FileList
+            files={s_files}
+            name={s_config.media.name}
+            funcsetmedia={funcSetMedia}
+            ref={scroll_ref}
+          />
+        </Drawer>
       </Container>
     </ThemeProvider>
   );

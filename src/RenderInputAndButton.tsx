@@ -25,7 +25,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
       <Box>Search directory</Box>
       <Input
         id="dir-input"
-        onChange={(e) => setDir(e.currentTarget.value)}
+        onChange={(e:any) => setDir(e.currentTarget.value)}
         placeholder="Enter a directory..."
         value={dir}
         fullWidth={true}
@@ -33,7 +33,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
       <Box>Search string</Box>
       <Input
         id="str-input"
-        onChange={(e) => setStr(e.currentTarget.value)}
+        onChange={(e:any) => setStr(e.currentTarget.value)}
         placeholder="Enter a string..."
         value={str}
         fullWidth={true}
@@ -41,7 +41,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
       <Button
         variant="contained"
         type="submit"
-        onClick={(e) => {
+        onClick={(e:any) => {
           e.preventDefault();
           findFiles({ dir, str });
         }}
@@ -51,7 +51,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
       <Button
         variant="contained"
         type="submit"
-        onClick={(e) => {
+        onClick={(e:any) => {
           e.preventDefault();
           getFiles();
         }}
