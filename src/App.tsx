@@ -358,6 +358,7 @@ const handleTransitionEnd = () => {
                 aria-label="menu"
                 onClick={() => scroollToRef()}
                 sx={{ marginRight: "auto" }}
+                style={{width:"100%"}}
               >
                 <Adjust />
               </IconButton>
