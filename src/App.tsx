@@ -26,6 +26,7 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import Adjust from "@mui/icons-material/Adjust";
+import CircularProgress from "@mui/material/CircularProgress";
 import { FileList } from "./FileList";
 import RenderInputAndButton from "./RenderInputAndButton";
 
@@ -76,11 +77,27 @@ function App() {
   const [mode /*setMode*/] = useState<PaletteMode>("light");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
+  const [loading, setLoading] = useState(false);
   const darkTheme = createTheme({
     palette: {
       mode,
     },
   });
+
+  // スピナーを画面いっぱいに表示するためのスタイルを追加します
+  const spinnerStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 9999,
+  };
+
   const scroll_ref = createRef<HTMLDivElement>();
 
   // react player
@@ -171,12 +188,14 @@ function App() {
   }
 
   async function findFiles(set: SSetting) {
+    setLoading(true);
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     var f = await invoke<Files>("find_files", { set }).catch((err) => {
       console.error(err);
       return null;
     });
     setFiles(f);
+    setLoading(false);
   }
 
   async function findFilesAndSave(set: SSetting){
@@ -259,6 +278,11 @@ const handleTransitionEnd = () => {
 
 
       <Container>
+        {loading && (
+          <div style={spinnerStyle}>
+            <CircularProgress />
+          </div>
+        )}
         <ReactPlayer
           ref={player}
           url={s_url}
