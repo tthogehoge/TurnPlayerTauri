@@ -11,9 +11,10 @@ import {
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
 import {
-  // Box,
+  Box,
   createTheme,
   PaletteMode,
+  Divider,
   // Stack,
   ThemeProvider,
 } from "@mui/material";
@@ -218,6 +219,61 @@ function App() {
     setUrl(new_url);
   }
 
+  // InputとButtonを関数にまとめる
+  function renderInputAndButton(
+    dir: string,
+    str: string,
+    setDir: (dir: string) => void,
+    setStr: (str: string) => void,
+    findFiles: (set:SSetting) => void,
+    getFiles: () => void
+  ) {
+    return (
+      <>
+        <Box>search directory</Box>
+        <Input
+          id="dir-input"
+          onChange={(e) => setDir(e.currentTarget.value)}
+          placeholder="Enter a directory..."
+          value={dir}
+          fullWidth={true}
+        />
+        <Box>search string</Box>
+        <Input
+          id="str-input"
+          onChange={(e) => setStr(e.currentTarget.value)}
+          placeholder="Enter a string..."
+          value={str}
+          fullWidth={true}
+        />
+        <Button
+          variant="contained"
+          type="submit"
+          onClick={(e) => {
+            e.preventDefault();
+            s_config.set.dir = s_dir;
+            s_config.set.str = s_str;
+            setConfig(s_config);
+            saveConfig();
+            findFiles(s_config.set);
+          }}
+        >
+          find files
+        </Button>
+        <Button
+          variant="contained"
+          type="submit"
+          onClick={(e) => {
+            e.preventDefault();
+            getFiles();
+          }}
+        >
+          get files
+        </Button>
+      </>
+    );
+  }
+
   return (
     <ThemeProvider theme={darkTheme}>
       <AppBar position="static" color="primary">
@@ -237,37 +293,19 @@ function App() {
         onPause={()=>{onPlayerPause()}}
       />
 
-      search directory
-      <Input
-        id="dir-input"
-        onChange={ (e) => setDir(e.currentTarget.value) }
-        placeholder="Enter a directory..."
-        value={s_dir}
-      />
-      search string
-      <Input
-        id="str-input"
-        onChange={ (e) => setStr(e.currentTarget.value) }
-        placeholder="Enter a string..."
-        value={s_str}
-      />
-      <Button variant="contained" type="submit"
-        onClick={(e) => {
-          e.preventDefault();
-          s_config.set.dir = s_dir;
-          s_config.set.str = s_str;
-          setConfig(s_config);
-          saveConfig();
-          findFiles(s_config.set);
-        }}
-      >find files</Button>
+      <Divider />
 
-      <Button variant="contained" type="submit"
-        onClick={(e) => {
-          e.preventDefault();
-          getFiles();
-        }}
-      >get files</Button>
+      {// renderInputAndButton関数を呼び出す側のコード
+      renderInputAndButton(
+        s_dir,
+        s_str,
+        setDir,
+        setStr,
+        findFiles,
+        getFiles
+      )}
+
+      <Divider />
 
       <FileList files={s_files} name={s_config.media.name} funcsetmedia={funcSetMedia} ref={scroll_ref} />
     </Container>
