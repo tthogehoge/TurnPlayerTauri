@@ -38,7 +38,6 @@ export type SSetting = {
 export type Media = {
   path: string;
   name: string;
-  date: number;
 };
 
 export type Files = Array<Media>;
@@ -56,7 +55,7 @@ type Config = {
 function getDefaultConfig() {
   let config: Config = {
     set: { dir: "", str: "" },
-    media: { path: "", name: "", date: 0 },
+    media: { path: "", name: "" },
     pos: 0,
   };
   return config;
