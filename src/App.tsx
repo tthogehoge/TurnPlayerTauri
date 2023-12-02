@@ -118,6 +118,8 @@ function App() {
 
   function funcSetMedia(media:Media){
     setMedia(media);
+    setPlaying(true);
+    scroollToTop();
   }
 
   async function saveConfig() {
@@ -186,6 +188,13 @@ function App() {
     });
     setFiles(f);
     scroollToRef();
+  }
+
+  async function scroollToTop(){
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   async function scroollToRef(){
