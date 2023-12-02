@@ -56,6 +56,7 @@ static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 #[tauri::command]
 fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
     let mut files: Vec<Media> = Vec::new();
+    let sstring = set.str.split_whitespace();
 
     let readdir = std::fs::read_dir(set.dir)?; 
     for item in readdir.into_iter() {
@@ -71,7 +72,14 @@ fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
                     let pathstr=path.to_string_lossy().to_string();
                     if let Some(filename) = path.file_name() {
                         let filename = filename.to_string_lossy().to_string();
-                        let ok = filename.contains(&set.str);
+                        // let ok = filename.contains(&set.str);
+                        let mut ok = true;
+                        for word in sstring.clone().into_iter() {
+                            if !filename.contains(word) {
+                                ok = false;
+                                break;
+                            }
+                        }
                         if ok {
                             let mut dt = tstring;
                             let re = Regex::new(r"(\d{14})");
