@@ -202,6 +202,7 @@ function App() {
     c.set.dir = set.dir;
     c.set.str = set.str;
     setConfig(c);
+    saveConfig();
     findFiles(c.set);
   }
 
