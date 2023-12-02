@@ -52,16 +52,19 @@ use chrono::Local;
 
 static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
+fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
     let mut files: Vec<Media> = Vec::new();
     let sstring = set.str.split_whitespace();
 
     let readdir = std::fs::read_dir(set.dir)?; 
     for item in readdir.into_iter() {
         let path = item?.path();
-        if path.is_file() {
+        if path.is_dir() {
+            let sub_dirs = find_files_core(SSetting { dir: path.to_string_lossy().to_string(), str: set.str.clone() });
+            if let Ok(sub_dirs) = sub_dirs {
+                files.extend(sub_dirs);
+            }
+        }else if path.is_file() {
             let meta = path.metadata()?;
             let mtime = meta.modified()?;
             let mtime: DateTime<Local> = mtime.into();
@@ -104,9 +107,21 @@ fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
             }
         }
     }
+    Ok(files)
+}
+
+// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+#[tauri::command]
+fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
+    //let mut files: Vec<Media> = Vec::new();
+    let mut files = find_files_core(set)?;
+
+    // 最後にソート
     files.sort_by(|a,b|
         a.date.cmp(&b.date)
     );
+
+    // MEDIASに登録
     if let Ok(mut ary) = MEDIAS.lock() {
         ary.clone_from(&files);
     }
