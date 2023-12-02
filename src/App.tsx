@@ -37,7 +37,7 @@ export type SSetting = {
 export type Media = {
   path: string;
   name: string;
-  date: string;
+  date: number;
 };
 
 export type Files = Array<Media>;
@@ -55,7 +55,7 @@ type Config = {
 function getDefaultConfig() {
   let config: Config = {
     set: { dir: "", str: "" },
-    media: { path: "", name: "", date: "" },
+    media: { path: "", name: "", date: 0 },
     pos: 0,
   };
   return config;
@@ -179,6 +179,14 @@ function App() {
     setFiles(f);
   }
 
+  async function findFilesAndSave(set: SSetting){
+    let c = s_config;
+    c.set.dir = set.dir;
+    c.set.str = set.str;
+    setConfig(c);
+    findFiles(c.set);
+  }
+
   async function getFiles() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     var f = await invoke<Files>("get_files").catch((err) => {
@@ -274,7 +282,7 @@ const handleTransitionEnd = () => {
           str={s_str}
           setDir={setDir}
           setStr={setStr}
-          findFiles={findFiles}
+          findFiles={findFilesAndSave}
           getFiles={getFiles}
         />
 
