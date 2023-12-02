@@ -34,7 +34,8 @@ impl serde::Serialize for Error {
 struct Media {
     path: String,
     name: String,
-    date: String,
+    #[serde(with="ts_seconds")]
+    date: DateTime<Utc>,
 }
 
 #[derive(Serialize,Deserialize,Clone)]
@@ -43,12 +44,15 @@ struct SSetting {
     str: String,
 }
 
+use chrono::TimeZone;
 use serde::{Serialize, Deserialize};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 use regex::Regex;
 use chrono::DateTime;
 use chrono::Local;
+use chrono::Utc;
+use chrono::serde::ts_seconds;
 
 static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 
@@ -65,10 +69,6 @@ fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
                 files.extend(sub_dirs);
             }
         }else if path.is_file() {
-            let meta = path.metadata()?;
-            let mtime = meta.modified()?;
-            let mtime: DateTime<Local> = mtime.into();
-            let tstring = mtime.format("%Y%m%d%H%M%S").to_string();
             if let Some(ext) = path.extension() {
                 let ext = ext.to_string_lossy().to_string();
                 if ext == "mp4" || ext == "m4a" {
@@ -84,21 +84,32 @@ fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
                             }
                         }
                         if ok {
-                            let mut dt = tstring;
+                            let mut dt: DateTime<Local> = Local::now();
+                            let mut ok = false;
                             let re = Regex::new(r"(\d{14})");
                             if let Ok(re) = re {
                                 match re.captures(&filename) {
                                     Some(caps) => {
-                                        dt = caps[0].to_string();
+                                        let d = DateTime::parse_from_str(&caps[0], "%Y%m%d%H%M%S");
+                                        if let Ok(d) = d {
+                                            dt = d.with_timezone(&Local);
+                                            ok = true;
+                                        }
                                     },
                                     None => {
                                     }
                                 }
                             }
+                            if !ok {
+                                let meta = path.metadata()?;
+                                let mtime = meta.modified()?;
+                                let mtime: DateTime<Local> = mtime.into();
+                                dt = mtime;
+                            }
                             let media = Media{
                                 path: pathstr,
                                 name: filename,
-                                date: dt,
+                                date: Utc.from_utc_datetime(&dt.naive_utc()),
                             };
                             files.push(media);
                         }
