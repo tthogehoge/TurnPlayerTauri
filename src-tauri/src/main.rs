@@ -124,19 +124,23 @@ fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
+    println!("search start");
     //let mut files: Vec<Media> = Vec::new();
     let mut files = find_files_core(set)?;
 
     // 最後にソート
+    println!("sort start");
     files.sort_by(|a,b|
         a.date.cmp(&b.date)
     );
 
     // MEDIASに登録
+    println!("regist start");
     if let Ok(mut ary) = MEDIAS.lock() {
         ary.clone_from(&files);
     }
 
+    println!("return");
     Ok(files)
 }
 

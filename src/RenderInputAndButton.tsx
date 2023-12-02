@@ -2,25 +2,20 @@
 import React from "react";
 import { Box, Input, Button, IconButton } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
-import { SSetting } from "./App";
+import SearchIcon from "@mui/icons-material/Search";
+import { SSetting, AEvent } from "./App";
 import { open } from "@tauri-apps/api/dialog";
 
 type RenderInputAndButtonProps = {
   dir: string;
   str: string;
-  setDir: (dir: string) => void;
-  setStr: (str: string) => void;
-  findFiles: (set: SSetting) => void;
-  getFiles: () => void;
+  callEvent: (event:AEvent, opt:any) => void;
 };
 
 const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
   dir,
   str,
-  setDir,
-  setStr,
-  findFiles,
-  getFiles,
+  callEvent,
 }) => {
   // フォルダ選択ダイアログを出す関数
   async function selectFolder(dir: string) {
@@ -37,33 +32,37 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
     } else {
       // user selected a single file
       console.log(selected);
-      setDir(selected);
+      callEvent("SetDir", selected);
     }
   }
 
   return (
     <>
       <Box display="flex" alignItems="center">
-        <Box>DIR: </Box>
-        <Input
-          id="dir-input"
-          onChange={(e: any) => setDir(e.currentTarget.value)}
-          placeholder="Enter a directory..."
-          value={dir}
-          fullWidth={true}
-        />
         <IconButton
           onClick={() => selectFolder(dir)}
           aria-label="select folder"
         >
           <FolderIcon />
         </IconButton>
+        <Input
+          id="dir-input"
+          onChange={(e: any) => callEvent("SetDir", e.currentTarget.value)}
+          placeholder="Enter a directory..."
+          value={dir}
+          fullWidth={true}
+        />
       </Box>
       <Box display="flex" alignItems="center">
-        <Box>TEXT: </Box>
+        <IconButton
+          onClick={() => callEvent("FindFiles", {dir, str})}
+          aria-label="select folder"
+        >
+          <SearchIcon />
+        </IconButton>
         <Input
           id="str-input"
-          onChange={(e: any) => setStr(e.currentTarget.value)}
+          onChange={(e: any) => callEvent("SetStr", e.currentTarget.value)}
           placeholder="Enter a string..."
           value={str}
           fullWidth={true}
@@ -74,20 +73,20 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
         type="submit"
         onClick={(e: any) => {
           e.preventDefault();
-          findFiles({ dir, str });
+          callEvent("FindFiles", {dir, str});
         }}
       >
-        find files
+        Search
       </Button>
       <Button
         variant="contained"
         type="submit"
         onClick={(e: any) => {
           e.preventDefault();
-          getFiles();
+          callEvent("GetFiles", null);
         }}
       >
-        get files
+        Now Playing
       </Button>
     </>
   );

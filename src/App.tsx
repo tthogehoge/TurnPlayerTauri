@@ -44,6 +44,8 @@ export type Files = Array<Media>;
 
 export type FuncSetMedia = (media: Media) => void;
 
+export type AEvent = "SetDir" | "SetStr" | "FindFiles" | "GetFiles";
+
 // 設定構造体
 type Config = {
   set: SSetting;
@@ -110,6 +112,7 @@ function App() {
   async function loadConfig() {
     var config = s_config;
     try {
+      console.log(BaseDirectory);
       // var curdir = await invoke<string>("get_current_dir");
       // 設定ファイルの読み込み
       const profileBookStr = await readTextFile(CONFIG_FILE, {
@@ -197,15 +200,6 @@ function App() {
     setLoading(false);
   }
 
-  async function findFilesAndSave(set: SSetting){
-    let c = s_config;
-    c.set.dir = set.dir;
-    c.set.str = set.str;
-    setConfig(c);
-    saveConfig();
-    findFiles(c.set);
-  }
-
   async function getFiles() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     var f = await invoke<Files>("get_files").catch((err) => {
@@ -245,13 +239,34 @@ function App() {
     setUrl(new_url);
   }
 
+  async function callEvent(event:AEvent, opt:any) {
+    switch(event){
+      case "SetDir":
+        setDir(opt);
+        break;
+      case "SetStr":
+        setStr(opt);
+        break;
+      case "FindFiles":
+        let set:SSetting = opt;
+        let c = s_config;
+        c.set.dir = set.dir;
+        c.set.str = set.str;
+        setConfig(c);
+        saveConfig();
+        findFiles(opt);
+        break;
+      case "GetFiles":
+        getFiles();
+        break;
+    }
+
+  }
+
 // transitionend イベントを待ってから scrollIntoView を実行する
 const handleTransitionEnd = () => {
   if (shouldScroll) {
-    scroll_ref!.current!.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
+    scroollToRef();
     setShouldScroll(false); // スクロール後にフラグをリセット
   }
 };
@@ -278,11 +293,14 @@ const handleTransitionEnd = () => {
 
 
       <Container>
+        {/* spinner */}
         {loading && (
           <div style={spinnerStyle}>
             <CircularProgress />
           </div>
         )}
+
+        {/* player */}
         <ReactPlayer
           ref={player}
           url={s_url}
@@ -301,25 +319,26 @@ const handleTransitionEnd = () => {
 
         <Divider />
 
+        {/* 入力ボタン */}
         <RenderInputAndButton
           dir={s_dir}
           str={s_str}
-          setDir={setDir}
-          setStr={setStr}
-          findFiles={findFilesAndSave}
-          getFiles={getFiles}
+          callEvent={callEvent}
         />
 
         <Divider />
 
+        {/* 左のdrawer */}
         <Drawer
           anchor="left"
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           onTransitionEnd={handleTransitionEnd}
         >
+          {/* drawerの一番上 */}
           <AppBar position="sticky" color="primary">
             <Toolbar>
+              {/* 閉じるボタン */}
               <IconButton
                 size="large"
                 edge="start"
@@ -330,6 +349,8 @@ const handleTransitionEnd = () => {
               >
                 <MenuIcon />
               </IconButton>
+
+              {/* 現在位置にスクロール */}
               <IconButton
                 size="large"
                 edge="start"
@@ -342,6 +363,8 @@ const handleTransitionEnd = () => {
               </IconButton>
             </Toolbar>
           </AppBar>
+
+          {/* ファイルリスト */}
           <FileList
             files={s_files}
             name={s_config.media.name}
