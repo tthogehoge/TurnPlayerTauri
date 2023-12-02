@@ -11,6 +11,7 @@ import {
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
 import {
+  Box,
   createTheme,
   PaletteMode,
   Divider,
@@ -74,6 +75,7 @@ function App() {
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
   const [mode /*setMode*/] = useState<PaletteMode>("light");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [shouldScroll, setShouldScroll] = useState(false);
   const darkTheme = createTheme({
     palette: {
       mode,
@@ -184,8 +186,8 @@ function App() {
       return null;
     });
     setFiles(f);
+    setShouldScroll(true);
     setDrawerOpen(true);
-    scroollToRef();
   }
 
   async function scroollToTop() {
@@ -216,22 +218,38 @@ function App() {
     setUrl(new_url);
   }
 
+// transitionend イベントを待ってから scrollIntoView を実行する
+const handleTransitionEnd = () => {
+  if (shouldScroll) {
+    scroll_ref!.current!.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+    setShouldScroll(false); // スクロール後にフラグをリセット
+  }
+};
+
   return (
     <ThemeProvider theme={darkTheme}>
-      <AppBar position="fixed" color="primary">
+      <AppBar position="sticky" color="primary">
         <Toolbar>
           <IconButton
             size="large"
             edge="start"
             color="inherit"
             aria-label="menu"
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => {
+              setShouldScroll(true);
+              setDrawerOpen(true);
+            }}
           >
             <MenuIcon />
           </IconButton>
           <Typography>{s_playname}</Typography>
         </Toolbar>
       </AppBar>
+
+
       <Container>
         <ReactPlayer
           ref={player}
@@ -266,6 +284,7 @@ function App() {
           anchor="left"
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
+          onTransitionEnd={handleTransitionEnd}
         >
           <AppBar position="sticky" color="primary">
             <Toolbar>
