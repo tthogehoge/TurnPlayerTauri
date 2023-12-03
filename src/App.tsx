@@ -376,7 +376,7 @@ function App() {
           <IconButton onClick={() => playList(-1)}>
             <SkipPreviousIcon />
           </IconButton>
-          <IconButton onClick={() => setPlaying(!s_playing)}>
+          <IconButton onClick={() => setPlaying(!s_playing)} sx={{flex:1}}>
             {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
           </IconButton>
           <IconButton onClick={() => playList(1)}>
