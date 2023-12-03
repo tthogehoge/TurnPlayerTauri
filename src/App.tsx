@@ -11,7 +11,7 @@ import {
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import ReactPlayer from "react-player";
 import {
-  // Box,
+  Box,
   createTheme,
   PaletteMode,
   Divider,
@@ -26,6 +26,10 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import Adjust from "@mui/icons-material/Adjust";
+import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
 import CircularProgress from "@mui/material/CircularProgress";
 import { FileList } from "./FileList";
 import RenderInputAndButton from "./RenderInputAndButton";
@@ -87,15 +91,15 @@ function App() {
 
   // スピナーを画面いっぱいに表示するためのスタイルを追加します
   const spinnerStyle: React.CSSProperties = {
-    position: 'fixed',
+    position: "fixed",
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     zIndex: 9999,
   };
 
@@ -112,7 +116,6 @@ function App() {
   async function loadConfig() {
     var config = s_config;
     try {
-      console.log(BaseDirectory);
       // var curdir = await invoke<string>("get_current_dir");
       // 設定ファイルの読み込み
       const profileBookStr = await readTextFile(CONFIG_FILE, {
@@ -176,10 +179,14 @@ function App() {
   }
 
   async function onPlayerEnded() {
+    playList(1);
+  }
+
+  function playList(shift:number) {
     if (s_files) {
       let idx = s_files.findIndex((e) => e.name == s_playname);
       if (idx != -1 && idx != undefined) {
-        idx++;
+        idx+=shift;
         if (idx >= s_files.length) {
           idx = 0;
         }
@@ -239,8 +246,8 @@ function App() {
     setUrl(new_url);
   }
 
-  async function callEvent(event:AEvent, opt:any) {
-    switch(event){
+  async function callEvent(event: AEvent, opt: any) {
+    switch (event) {
       case "SetDir":
         setDir(opt);
         break;
@@ -248,7 +255,7 @@ function App() {
         setStr(opt);
         break;
       case "FindFiles":
-        let set:SSetting = opt;
+        let set: SSetting = opt;
         let c = s_config;
         c.set.dir = set.dir;
         c.set.str = set.str;
@@ -260,16 +267,15 @@ function App() {
         getFiles();
         break;
     }
-
   }
 
-// transitionend イベントを待ってから scrollIntoView を実行する
-const handleTransitionEnd = () => {
-  if (shouldScroll) {
-    scroollToRef();
-    setShouldScroll(false); // スクロール後にフラグをリセット
-  }
-};
+  // transitionend イベントを待ってから scrollIntoView を実行する
+  const handleTransitionEnd = () => {
+    if (shouldScroll) {
+      scroollToRef();
+      setShouldScroll(false); // スクロール後にフラグをリセット
+    }
+  };
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -291,15 +297,61 @@ const handleTransitionEnd = () => {
         </Toolbar>
       </AppBar>
 
+      {/* spinner */}
+      {loading && (
+        <div style={spinnerStyle}>
+          <CircularProgress />
+        </div>
+      )}
+
+      {/* 左のdrawer */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onTransitionEnd={handleTransitionEnd}
+      >
+        {/* drawerの一番上 */}
+        <AppBar position="sticky" color="primary">
+          <Toolbar>
+            {/* 閉じるボタン */}
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              onClick={() => setDrawerOpen(false)}
+              sx={{ marginRight: "auto" }}
+            >
+              <MenuIcon />
+            </IconButton>
+
+            {/* 現在位置にスクロール */}
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              onClick={() => scroollToRef()}
+              sx={{ marginRight: "auto" }}
+              style={{ width: "100%" }}
+            >
+              <Adjust />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        {/* ファイルリスト */}
+        <FileList
+          files={s_files}
+          name={s_config.media.name}
+          funcsetmedia={funcSetMedia}
+          ref={scroll_ref}
+        />
+      </Drawer>
 
       <Container>
-        {/* spinner */}
-        {loading && (
-          <div style={spinnerStyle}>
-            <CircularProgress />
-          </div>
-        )}
-
+        <Box component="p">{s_playname}</Box>
         {/* player */}
         <ReactPlayer
           ref={player}
@@ -313,66 +365,31 @@ const handleTransitionEnd = () => {
             onPlayerEnded();
           }}
           onPause={() => {
+            setPlaying(false);
             onPlayerPause();
           }}
+          onPlay={() => {
+            setPlaying(true);
+          }}
         />
+      <Box display="flex" alignItems="center">
+        <IconButton onClick={()=>playList(-1)}>
+        <SkipPreviousIcon />
+      </IconButton>
+      <IconButton onClick={()=>setPlaying(!s_playing)}>
+        {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
+      </IconButton>
+      <IconButton onClick={()=>playList(1)}>
+        <SkipNextIcon />
+      </IconButton>
+      </Box>
 
         <Divider />
 
         {/* 入力ボタン */}
-        <RenderInputAndButton
-          dir={s_dir}
-          str={s_str}
-          callEvent={callEvent}
-        />
+        <RenderInputAndButton dir={s_dir} str={s_str} callEvent={callEvent} />
 
         <Divider />
-
-        {/* 左のdrawer */}
-        <Drawer
-          anchor="left"
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          onTransitionEnd={handleTransitionEnd}
-        >
-          {/* drawerの一番上 */}
-          <AppBar position="sticky" color="primary">
-            <Toolbar>
-              {/* 閉じるボタン */}
-              <IconButton
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                onClick={() => setDrawerOpen(false)}
-                sx={{ marginRight: "auto" }}
-              >
-                <MenuIcon />
-              </IconButton>
-
-              {/* 現在位置にスクロール */}
-              <IconButton
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                onClick={() => scroollToRef()}
-                sx={{ marginRight: "auto" }}
-                style={{width:"100%"}}
-              >
-                <Adjust />
-              </IconButton>
-            </Toolbar>
-          </AppBar>
-
-          {/* ファイルリスト */}
-          <FileList
-            files={s_files}
-            name={s_config.media.name}
-            funcsetmedia={funcSetMedia}
-            ref={scroll_ref}
-          />
-        </Drawer>
       </Container>
     </ThemeProvider>
   );
