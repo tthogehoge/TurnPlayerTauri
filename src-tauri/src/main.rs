@@ -16,6 +16,8 @@ enum Error {
   #[error(transparent)]
   Regex_Stream(#[from] <regex::Regex as futures_core::stream::TryStream>::Error),
   */
+  #[error(transparent)]
+  StrError(#[from] std::num::ParseIntError),
   #[error("other")]
   Other
 }
@@ -52,6 +54,7 @@ use regex::Regex;
 use chrono::DateTime;
 use chrono::Local;
 use chrono::Utc;
+use chrono::LocalResult;
 use chrono::serde::ts_seconds;
 
 static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
@@ -90,9 +93,16 @@ fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
                             if let Ok(re) = re {
                                 match re.captures(&filename) {
                                     Some(caps) => {
-                                        let d = DateTime::parse_from_str(&caps[0], "%Y%m%d%H%M%S");
-                                        if let Ok(d) = d {
-                                            dt = d.with_timezone(&Local);
+                                        //println!("{}/{}/{} {}:{}:{}", &caps[0], &caps[1], &caps[2], &caps[3], &caps[4], &caps[5])
+                                        let year:i32 = caps[0][0..4].to_string().parse()?;
+                                        let month:u32 = caps[0][4..6].to_string().parse()?;
+                                        let day:u32 = caps[0][6..8].to_string().parse()?;
+                                        let hour:u32 = caps[0][8..10].to_string().parse()?;
+                                        let min:u32 = caps[0][10..12].to_string().parse()?;
+                                        let sec:u32 = caps[0][12..14].to_string().parse()?;
+                                        let ddt = Local.with_ymd_and_hms(year, month, day, hour, min, sec);
+                                        if let LocalResult::Single(ddt) = ddt {
+                                            dt = ddt;
                                             ok = true;
                                         }
                                     },
@@ -131,7 +141,7 @@ fn find_files(set: SSetting) -> Result<Vec<Media>, Error> {
     // 最後にソート
     println!("sort start");
     files.sort_by(|a,b|
-        a.date.cmp(&b.date)
+        a.date.timestamp().cmp(&b.date.timestamp())
     );
 
     // MEDIASに登録
