@@ -26,10 +26,10 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import Adjust from "@mui/icons-material/Adjust";
-import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
-import SkipNextIcon from '@mui/icons-material/SkipNext';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
+import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
+import SkipNextIcon from "@mui/icons-material/SkipNext";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
 import CircularProgress from "@mui/material/CircularProgress";
 import { FileList } from "./FileList";
 import RenderInputAndButton from "./RenderInputAndButton";
@@ -182,11 +182,11 @@ function App() {
     playList(1);
   }
 
-  function playList(shift:number) {
+  function playList(shift: number) {
     if (s_files) {
       let idx = s_files.findIndex((e) => e.name == s_playname);
       if (idx != -1 && idx != undefined) {
-        idx+=shift;
+        idx += shift;
         if (idx >= s_files.length) {
           idx = 0;
         }
@@ -372,17 +372,17 @@ function App() {
             setPlaying(true);
           }}
         />
-      <Box display="flex" alignItems="center">
-        <IconButton onClick={()=>playList(-1)}>
-        <SkipPreviousIcon />
-      </IconButton>
-      <IconButton onClick={()=>setPlaying(!s_playing)}>
-        {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
-      </IconButton>
-      <IconButton onClick={()=>playList(1)}>
-        <SkipNextIcon />
-      </IconButton>
-      </Box>
+        <Box display="flex" alignItems="center">
+          <IconButton onClick={() => playList(-1)}>
+            <SkipPreviousIcon />
+          </IconButton>
+          <IconButton onClick={() => setPlaying(!s_playing)}>
+            {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
+          </IconButton>
+          <IconButton onClick={() => playList(1)}>
+            <SkipNextIcon />
+          </IconButton>
+        </Box>
 
         <Divider />
 
