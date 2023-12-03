@@ -42,6 +42,7 @@ export type SSetting = {
 export type Media = {
   path: string;
   name: string;
+  date: number;
 };
 
 export type Files = Array<Media>;
@@ -61,7 +62,7 @@ type Config = {
 function getDefaultConfig() {
   let config: Config = {
     set: { dir: "", str: "" },
-    media: { path: "", name: "" },
+    media: { path: "", name: "", date: 0 },
     pos: 0,
   };
   return config;
@@ -293,7 +294,7 @@ function App() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography>{s_playname}</Typography>
+          <Typography>{(new Date(s_config.media.date * 1000)).toLocaleDateString()}: {s_playname}</Typography>
         </Toolbar>
       </AppBar>
 
