@@ -9,6 +9,7 @@ import {
   createDir,
 } from "@tauri-apps/api/fs";
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
+import { fetch, ResponseType } from "@tauri-apps/api/http";
 import ReactPlayer from "react-player";
 import {
   Box,
@@ -33,6 +34,8 @@ import PauseIcon from "@mui/icons-material/Pause";
 import CircularProgress from "@mui/material/CircularProgress";
 import { FileList } from "./FileList";
 import RenderInputAndButton from "./RenderInputAndButton";
+import { Input } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
 export type SSetting = {
   dir: string;
@@ -43,6 +46,7 @@ export type Media = {
   path: string;
   name: string;
   date: number;
+  url: boolean;
 };
 
 export type Files = Array<Media>;
@@ -56,14 +60,16 @@ type Config = {
   set: SSetting;
   media: Media;
   pos: number;
+  podcast: string;
 };
 
 // 設定デフォルト値
 function getDefaultConfig() {
   let config: Config = {
     set: { dir: "", str: "" },
-    media: { path: "", name: "", date: 0 },
+    media: { path: "", name: "", date: 0, url: false },
     pos: 0,
+    podcast: "",
   };
   return config;
 }
@@ -79,11 +85,14 @@ function App() {
   const [s_playing, setPlaying] = useState(false);
   const [s_playname, setPlayname] = useState("");
   const [s_files, setFiles] = useState<Files | null>(null);
+  const [s_urls, setUrls] = useState<Files | null>(null);
+  const [s_medias, setMedias] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
   const [mode /*setMode*/] = useState<PaletteMode>("light");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [s_podcast, setPodcast] = useState("");
   const darkTheme = createTheme({
     palette: {
       mode,
@@ -114,6 +123,10 @@ function App() {
     loadConfig();
   }, []);
 
+  useEffect(() => {
+    updateFiles();
+  }, [s_files, s_urls]);
+
   async function loadConfig() {
     var config = s_config;
     try {
@@ -138,6 +151,8 @@ function App() {
     if (config.media.path != "") {
       updateFileName(config.media);
     }
+    setPodcast(config.podcast);
+    fetchPodcastData(config.podcast);
     setLoaded(true);
   }
 
@@ -184,14 +199,14 @@ function App() {
   }
 
   function playList(shift: number) {
-    if (s_files) {
-      let idx = s_files.findIndex((e) => e.name == s_playname);
+    if (s_medias) {
+      let idx = s_medias.findIndex((e) => e.name == s_playname);
       if (idx != -1 && idx != undefined) {
         idx += shift;
-        if (idx >= s_files.length) {
+        if (idx >= s_medias.length) {
           idx = 0;
         }
-        setMedia(s_files[idx]);
+        setMedia(s_medias[idx]);
         setPlaying(true);
       }
     }
@@ -219,6 +234,14 @@ function App() {
     setDrawerOpen(true);
   }
 
+  function updateFiles(){
+    let m: Files = [];
+    if(s_files!=null) m = s_files;
+    if(s_urls!=null) m = m.concat(s_urls);
+    m = m.sort((a,b) => (a.date - b.date));
+    setMedias(m);
+  }
+
   async function scroollToTop() {
     window.scrollTo({
       top: 0,
@@ -243,7 +266,10 @@ function App() {
 
   async function updateFileName(media: Media) {
     setPlayname(media.name);
-    const new_url = convertFileSrc(media.path);
+    let new_url = media.path;
+    if(!media.url){
+      new_url = convertFileSrc(media.path);
+    }
     setUrl(new_url);
   }
 
@@ -269,6 +295,38 @@ function App() {
         break;
     }
   }
+
+  // ポッドキャストのデータを取得するための関数
+async function fetchPodcastData(url:string) {
+  // https://getrssfeed.com/　でRSSを抜き出す
+  // ポッドキャストのデータを取得する処理を記述する
+  // 例えば、外部APIからデータを取得する場合はここにAPIリクエストを行うコードを記述する
+  // 取得したデータは適切な形式に整形して返す
+  // 例: const podcastData = await fetch('https://example.com/api/podcast').then(res => res.json());
+  const podcastData = await fetch(url, {method: "GET", responseType: ResponseType.Text});
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(podcastData.data as string, 'text/xml');
+  console.log(xmlDoc);
+  const urls: Files = [];
+  const items = xmlDoc.getElementsByTagName("item");
+  for(let i=0;i<items.length;i++){
+    const title = items[i].getElementsByTagName("title")[0].childNodes[0].nodeValue;
+    const pubdate = items[i].getElementsByTagName("pubDate")[0].childNodes[0].nodeValue;
+    const enclosure = items[i].getElementsByTagName("enclosure")[0];
+    const url = enclosure.getAttribute("url");
+    const media:Media = {
+      path: url || "",
+      name: title || "",
+      date: new Date(pubdate as string).getTime()/1000 || 0,
+      url: true,
+    };
+    urls.push(media);
+    console.log(media);
+  }
+  setUrls(urls);
+  // 取得したデータを返す
+  return podcastData;
+}
 
   // transitionend イベントを待ってから scrollIntoView を実行する
   const handleTransitionEnd = () => {
@@ -344,7 +402,7 @@ function App() {
 
         {/* ファイルリスト */}
         <FileList
-          files={s_files}
+          files={s_medias}
           name={s_config.media.name}
           funcsetmedia={funcSetMedia}
           ref={scroll_ref}
@@ -383,6 +441,27 @@ function App() {
           <IconButton onClick={() => playList(1)}>
             <SkipNextIcon />
           </IconButton>
+        </Box>
+        <Box display="flex" alignItems="center">
+          <IconButton
+            onClick={() => {
+              let c = s_config;
+              c.podcast = s_podcast;
+              setConfig(c);
+              saveConfig();
+              fetchPodcastData(s_podcast);
+            }}
+            aria-label="select folder"
+          >
+            <SearchIcon />
+          </IconButton>
+          <Input
+            id="str-input"
+            onChange={(e: any) => setPodcast(e.currentTarget.value)}
+            placeholder="Enter a podcast url..."
+            value={s_podcast}
+            fullWidth={true}
+          />
         </Box>
 
         <Divider />

@@ -55,6 +55,7 @@ use chrono::DateTime;
 use chrono::Local;
 use chrono::Utc;
 use chrono::LocalResult;
+use chrono::{Datelike, Timelike};
 use chrono::serde::ts_seconds;
 
 static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
@@ -62,6 +63,10 @@ static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
     let mut files: Vec<Media> = Vec::new();
     let sstring = set.str.split_whitespace();
+    /*
+    let mut min_year = 9999;
+    let mut max_year = 0;
+    */
 
     let readdir = std::fs::read_dir(set.dir)?; 
     for item in readdir.into_iter() {
@@ -116,6 +121,14 @@ fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
                                 let mtime: DateTime<Local> = mtime.into();
                                 dt = mtime;
                             }
+                            /*
+                            if dt.year() < min_year{
+                                min_year = dt.year();
+                            }
+                            if dt.year() > max_year{
+                                max_year = dt.year();
+                            }
+                            */
                             let media = Media{
                                 path: pathstr,
                                 name: filename,

@@ -25,7 +25,7 @@ export const FileList = forwardRef<HTMLDivElement, Props>(
               <ListItemButton key={uuidv4()} selected={sel} ref={refsel}>
                 <ListItemText
                   onClick={() => {
-                    funcsetmedia(f);
+                    if(f.path != "") funcsetmedia(f);
                   }}
                 >
                   {f.name}

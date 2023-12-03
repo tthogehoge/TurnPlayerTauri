@@ -3,7 +3,7 @@ import React from "react";
 import { Box, Input, Button, IconButton } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
 import SearchIcon from "@mui/icons-material/Search";
-import { SSetting, AEvent } from "./App";
+import { /* SSetting, */ AEvent } from "./App";
 import { open } from "@tauri-apps/api/dialog";
 
 type RenderInputAndButtonProps = {
