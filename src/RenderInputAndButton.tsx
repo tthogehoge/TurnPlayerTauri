@@ -38,6 +38,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
 
   return (
     <>
+      {/* ファイルディレクトリ */}
       <Box display="flex" alignItems="center">
         <IconButton
           onClick={() => selectFolder(dir)}
@@ -48,11 +49,14 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
         <Input
           id="dir-input"
           onChange={(e: any) => callEvent("SetDir", e.currentTarget.value)}
+          onSubmit={() => callEvent("FindFiles", {dir, str})}
           placeholder="Enter a directory..."
           value={dir}
           fullWidth={true}
         />
       </Box>
+
+      {/* 検索文字列 */}
       <Box display="flex" alignItems="center">
         <IconButton
           onClick={() => callEvent("FindFiles", {dir, str})}
@@ -63,11 +67,17 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
         <Input
           id="str-input"
           onChange={(e: any) => callEvent("SetStr", e.currentTarget.value)}
+          onSubmit={(e: any) => {
+          e.preventDefault();
+          callEvent("FindFiles", {dir, str});
+        }}
           placeholder="Enter a string..."
           value={str}
           fullWidth={true}
         />
       </Box>
+
+      {/* 検索ボタン */}
       <Button
         variant="contained"
         type="submit"
@@ -78,6 +88,8 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
       >
         Search
       </Button>
+
+      {/* ファイル取得ボタン(現在位置へ移動) */}
       <Button
         variant="contained"
         type="submit"
