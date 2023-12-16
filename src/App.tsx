@@ -36,6 +36,7 @@ import { FileList } from "./FileList";
 import RenderInputAndButton from "./RenderInputAndButton";
 import { Input } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import Slider from "@mui/material/Slider";
 
 export type SSetting = {
   dir: string;
@@ -61,6 +62,7 @@ type Config = {
   media: Media;
   pos: number;
   podcast: string;
+  volume: number;
 };
 
 // 設定デフォルト値
@@ -70,6 +72,7 @@ function getDefaultConfig() {
     media: { path: "", name: "", date: 0, url: false },
     pos: 0,
     podcast: "",
+    volume: 1.0,
   };
   return config;
 }
@@ -88,6 +91,8 @@ function App() {
   const [s_urls, setUrls] = useState<Files | null>(null);
   const [s_medias, setMedias] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
+  const [s_volume, setVolume] = useState(1.0);
+  const [s_defvolume, setDefVolume] = useState(1.0);
   const [mode /*setMode*/] = useState<PaletteMode>("light");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
@@ -143,6 +148,7 @@ function App() {
       console.warn(error);
       setConfig(getDefaultConfig());
     }
+    setDefVolume(config.volume);
     setDir(config.set.dir);
     setStr(config.set.str);
     if (config.set.dir != "") {
@@ -150,6 +156,11 @@ function App() {
     }
     if (config.media.path != "") {
       updateFileName(config.media);
+      if(!config.media.url){
+        setVolume(config.volume);
+      }else{
+        setVolume(1.0);
+      }
     }
     setPodcast(config.podcast);
     fetchPodcastData(config.podcast);
@@ -269,6 +280,9 @@ function App() {
     let new_url = media.path;
     if(!media.url){
       new_url = convertFileSrc(media.path);
+      setVolume(s_config.volume);
+    }else{
+      setVolume(1.0);
     }
     setUrl(new_url);
   }
@@ -334,6 +348,14 @@ async function fetchPodcastData(url:string) {
       scroollToRef();
       setShouldScroll(false); // スクロール後にフラグをリセット
     }
+  };
+
+  const handleVolumeChange = (_:any, newvalue:any) => {
+    setDefVolume(newvalue);
+    const cfg = s_config;
+    cfg.volume = newvalue;
+    setConfig(cfg);
+    saveConfig();
   };
 
   return (
@@ -417,6 +439,7 @@ async function fetchPodcastData(url:string) {
           url={s_url}
           playing={s_playing}
           controls={true}
+          volume={s_volume}
           onReady={() => {
             onPlayerReady();
           }}
@@ -441,6 +464,13 @@ async function fetchPodcastData(url:string) {
           <IconButton onClick={() => playList(1)}>
             <SkipNextIcon />
           </IconButton>
+          <Slider
+          min={0}
+          max={1.0}
+          step={0.01}
+          value={s_defvolume}
+          onChange={handleVolumeChange}
+          />
         </Box>
         <Box display="flex" alignItems="center">
           <IconButton
