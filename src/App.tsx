@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext } from "react";
+import { useState, useEffect } from "react";
 //import reactLogo from "./assets/react.svg";
 //import { desktopDir, join } from "@tauri-apps/api/path";
 import {
@@ -56,14 +56,6 @@ export type Config = {
   volume: number;
 };
 
-//const a:React.Dispatch<React.SetStateAction<number>>;
-export const configContext = createContext(
-  {} as {
-    s_defvolume: number;
-    setDefVolume: React.Dispatch<React.SetStateAction<number>>;
-  }
-);
-
 // 設定デフォルト値
 function getDefaultConfig() {
   let config: Config = {
@@ -91,7 +83,6 @@ function App() {
   const [s_medias, setMedias] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
   const [s_volume, setVolume] = useState(1.0);
-  const [s_defvolume, setDefVolume] = useState(s_config.volume);
   const [mode /*setMode*/] = useState<PaletteMode>("light");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
@@ -140,7 +131,6 @@ function App() {
       console.warn(error);
       setConfig(getDefaultConfig());
     }
-    setDefVolume(config.volume);
     setDir(config.set.dir);
     setStr(config.set.str);
     if (config.set.dir != "") {
@@ -352,9 +342,9 @@ function App() {
       />
 
       <Container>
-        <configContext.Provider value={{ s_defvolume, setDefVolume }}>
           {/* player */}
           <Player
+          s_loaded={s_loaded}
             s_volume={s_volume}
             s_playname={s_playname}
             s_url={s_url}
@@ -388,7 +378,6 @@ function App() {
               playList(-1);
             }}
           />
-        </configContext.Provider>
 
         {/* podcast */}
         <Box display="flex" alignItems="center">

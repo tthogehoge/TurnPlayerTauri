@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useRef, useContext } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Config } from "./App";
 import ReactPlayer from "react-player";
 import { Box } from "@mui/material";
@@ -10,9 +10,9 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import Slider from "@mui/material/Slider";
 import { register, unregister } from "@tauri-apps/api/globalShortcut";
-import { configContext } from "./App";
 
 type Props = {
+    s_loaded: boolean;
   s_volume: number;
   s_playname: string;
   s_url: string;
@@ -27,6 +27,7 @@ type Props = {
 };
 
 export const Player: React.FC<Props> = ({
+    s_loaded,
   s_volume,
   s_playname,
   s_url,
@@ -41,7 +42,13 @@ export const Player: React.FC<Props> = ({
   onNext = () => {},
   onPrev = () => {},
 }) => {
-  const { s_defvolume, setDefVolume } = useContext(configContext);
+  const [ s_defvolume, setDefVolume ] = useState(1.0);
+
+  useEffect(()=>{
+    if(s_loaded){
+        setDefVolume(s_config.volume);
+    }
+  }, [s_loaded])
 
   useEffect(() => {
     registerShortcut();
