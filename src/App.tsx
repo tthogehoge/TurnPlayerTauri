@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createRef } from "react";
+import { useState, useEffect, createRef, createContext } from "react";
 //import reactLogo from "./assets/react.svg";
 //import { desktopDir, join } from "@tauri-apps/api/path";
 import {
@@ -10,7 +10,6 @@ import {
 } from "@tauri-apps/api/fs";
 import { invoke, convertFileSrc } from "@tauri-apps/api/tauri";
 import { fetch, ResponseType } from "@tauri-apps/api/http";
-import ReactPlayer from "react-player";
 import {
   Box,
   createTheme,
@@ -27,17 +26,12 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import Adjust from "@mui/icons-material/Adjust";
-import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
-import SkipNextIcon from "@mui/icons-material/SkipNext";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
 import CircularProgress from "@mui/material/CircularProgress";
 import { FileList } from "./FileList";
+import { Player } from "./Player";
 import RenderInputAndButton from "./RenderInputAndButton";
 import { Input } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import Slider from "@mui/material/Slider";
-import { register } from "@tauri-apps/api/globalShortcut";
 
 export type SSetting = {
   dir: string;
@@ -54,17 +48,27 @@ export type Media = {
 export type Files = Array<Media>;
 
 export type FuncSetMedia = (media: Media) => void;
+export type FuncSaveConfig = (config: Config) => void;
+export type FuncPlayList = (shift: number) => void;
 
 export type AEvent = "SetDir" | "SetStr" | "FindFiles" | "GetFiles";
 
 // 設定構造体
-type Config = {
+export type Config = {
   set: SSetting;
   media: Media;
   pos: number;
   podcast: string;
   volume: number;
 };
+
+//const a:React.Dispatch<React.SetStateAction<number>>;
+export const configContext = createContext(
+  {} as {
+    s_defvolume: number;
+    setDefVolume: React.Dispatch<React.SetStateAction<number>>;
+  }
+);
 
 // 設定デフォルト値
 function getDefaultConfig() {
@@ -93,7 +97,7 @@ function App() {
   const [s_medias, setMedias] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
   const [s_volume, setVolume] = useState(1.0);
-  const [s_defvolume, setDefVolume] = useState(1.0);
+  const [s_defvolume, setDefVolume] = useState(s_config.volume);
   const [mode /*setMode*/] = useState<PaletteMode>("light");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
@@ -120,9 +124,6 @@ function App() {
   };
 
   const scroll_ref = createRef<HTMLDivElement>();
-
-  // react player
-  const player = useRef<ReactPlayer>(null);
 
   // 初回実行
   useEffect(() => {
@@ -164,13 +165,6 @@ function App() {
     setPodcast(config.podcast);
     fetchPodcastData(config.podcast);
     setLoaded(true);
-
-    await register("Escape", ()=>{
-      setPlaying(false);
-    });
-    await register("F1", ()=>{
-      setPlaying(true);
-    });
   }
 
   function funcSetMedia(media: Media) {
@@ -190,27 +184,9 @@ function App() {
     await writeTextFile(CONFIG_FILE, JSON.stringify(s_config));
   }
 
-  async function onPlayerReady() {
-    if (s_loaded) {
-      setLoaded(false);
-      if (player.current) {
-        if (s_config.pos != 0) {
-          player.current.seekTo(s_config.pos, "seconds");
-        }
-      }
-    }
-  }
-
-  async function onPlayerPause() {
-    if (player.current) {
-      s_config.pos = player.current.getCurrentTime();
-      setConfig(s_config);
-      saveConfig();
-    }
-  }
-
-  async function onPlayerEnded() {
-    playList(1);
+  async function saveConfigC(config: Config) {
+    setConfig(config);
+    saveConfig();
   }
 
   function playList(shift: number) {
@@ -362,14 +338,6 @@ function App() {
     }
   };
 
-  const handleVolumeChange = (_: any, newvalue: any) => {
-    setDefVolume(newvalue);
-    const cfg = s_config;
-    cfg.volume = newvalue;
-    setConfig(cfg);
-    saveConfig();
-  };
-
   return (
     <ThemeProvider theme={darkTheme}>
       <AppBar position="sticky" color="primary">
@@ -447,51 +415,27 @@ function App() {
       </Drawer>
 
       <Container>
-        <Box component="p">{s_playname}</Box>
-        {/* player */}
-        <Box display="flex" alignItems="center">
-          <IconButton sx={{ height: "100%" }} onClick={() => playList(-1)}>
-            <SkipPreviousIcon />
-          </IconButton>
-          <ReactPlayer
-            ref={player}
-            url={s_url}
-            playing={s_playing}
-            controls={true}
-            volume={s_volume}
+        <configContext.Provider value={{ s_defvolume, setDefVolume }}>
+          {/* player */}
+          <Player
+            s_volume={s_volume}
+            s_playname={s_playname}
+            s_url={s_url}
+            s_config={s_config}
+            s_playing={s_playing}
+            saveConfig={saveConfigC}
+            playList={playList}
+            setPlaying={setPlaying}
             onReady={() => {
-              onPlayerReady();
-            }}
-            onEnded={() => {
-              onPlayerEnded();
-            }}
-            onPause={() => {
-              setPlaying(false);
-              onPlayerPause();
-            }}
-            onPlay={() => {
-              setPlaying(true);
+              if (s_loaded) {
+                setLoaded(false);
+                return true;
+              } else {
+                return false;
+              }
             }}
           />
-          <IconButton sx={{ height: "100%" }} onClick={() => playList(1)}>
-            <SkipNextIcon />
-          </IconButton>
-        </Box>
-
-        {/* player UI */}
-        <Box display="flex" alignItems="center">
-          <IconButton onClick={() => setPlaying(!s_playing)} sx={{ flex: 1 }}>
-            {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
-          <Slider
-            sx={{ width: "20%" }}
-            min={0}
-            max={1.0}
-            step={0.01}
-            value={s_defvolume}
-            onChange={handleVolumeChange}
-          />
-        </Box>
+        </configContext.Provider>
 
         {/* podcast */}
         <Box display="flex" alignItems="center">
