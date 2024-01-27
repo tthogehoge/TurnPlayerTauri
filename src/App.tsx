@@ -37,6 +37,7 @@ import RenderInputAndButton from "./RenderInputAndButton";
 import { Input } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import Slider from "@mui/material/Slider";
+import { register } from "@tauri-apps/api/globalShortcut";
 
 export type SSetting = {
   dir: string;
@@ -163,6 +164,13 @@ function App() {
     setPodcast(config.podcast);
     fetchPodcastData(config.podcast);
     setLoaded(true);
+
+    await register("Escape", ()=>{
+      setPlaying(false);
+    });
+    await register("F1", ()=>{
+      setPlaying(true);
+    });
   }
 
   function funcSetMedia(media: Media) {
