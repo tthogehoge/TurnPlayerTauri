@@ -137,9 +137,7 @@ function App() {
     try {
       // var curdir = await invoke<string>("get_current_dir");
       // 設定ファイルの読み込み
-      const profileBookStr = await readTextFile(CONFIG_FILE, {
-        dir: BaseDirectory.App,
-      });
+      const profileBookStr = await readTextFile(CONFIG_FILE);
       // パース
       config = JSON.parse(profileBookStr) as Config;
       setConfig(config);
@@ -181,9 +179,7 @@ function App() {
       await createDir("", { dir: BaseDirectory.App });
     }
     // 設定ファイルへの書き出し
-    await writeTextFile(CONFIG_FILE, JSON.stringify(s_config), {
-      dir: BaseDirectory.App,
-    });
+    await writeTextFile(CONFIG_FILE, JSON.stringify(s_config));
   }
 
   async function onPlayerReady() {
