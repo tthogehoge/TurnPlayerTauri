@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useRef, useContext } from "react";
-import { Config, FuncPlayList, FuncSaveConfig } from "./App";
+import { Config } from "./App";
 import ReactPlayer from "react-player";
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
@@ -18,10 +18,12 @@ type Props = {
   s_url: string;
   s_config: Config;
   s_playing: boolean;
-  saveConfig: FuncSaveConfig;
-  playList: FuncPlayList;
   setPlaying: (playing: boolean) => void;
   onReady?: () => boolean;
+  onPause?: (time:number) => void;
+  onDefVolumeChange?: (volume:number) => void;
+  onNext?: () => void;
+  onPrev?: () => void;
 };
 
 export const Player: React.FC<Props> = ({
@@ -30,12 +32,14 @@ export const Player: React.FC<Props> = ({
   s_url,
   s_config,
   s_playing,
-  saveConfig,
-  playList,
   setPlaying,
   onReady = () => {
     return false;
   },
+  onPause = () => {},
+  onDefVolumeChange = () => {},
+  onNext = () => {},
+  onPrev = () => {},
 }) => {
   const { s_defvolume, setDefVolume } = useContext(configContext);
 
@@ -67,22 +71,9 @@ export const Player: React.FC<Props> = ({
     }
   }
 
-  async function onPlayerPause() {
-    if (player.current) {
-      s_config.pos = player.current.getCurrentTime();
-      saveConfig(s_config);
-    }
-  }
-
-  async function onPlayerEnded() {
-    playList(1);
-  }
-
   const handleVolumeChange = (_: any, newvalue: any) => {
     setDefVolume(newvalue);
-    const cfg = s_config;
-    cfg.volume = newvalue;
-    saveConfig(cfg);
+    onDefVolumeChange(newvalue);
   };
 
   return (
@@ -90,7 +81,7 @@ export const Player: React.FC<Props> = ({
       <Box component="p">{s_playname}</Box>
       {/* player */}
       <Box display="flex" alignItems="center">
-        <IconButton sx={{ height: "100%" }} onClick={() => playList(-1)}>
+        <IconButton sx={{ height: "100%" }} onClick={() => onPrev()}>
           <SkipPreviousIcon />
         </IconButton>
         <ReactPlayer
@@ -103,17 +94,19 @@ export const Player: React.FC<Props> = ({
             onPlayerReady();
           }}
           onEnded={() => {
-            onPlayerEnded();
+            onNext();
           }}
           onPause={() => {
             setPlaying(false);
-            onPlayerPause();
+            if (player.current) {
+                onPause(player.current.getCurrentTime());
+            }
           }}
           onPlay={() => {
             setPlaying(true);
           }}
         />
-        <IconButton sx={{ height: "100%" }} onClick={() => playList(1)}>
+        <IconButton sx={{ height: "100%" }} onClick={() => onNext()}>
           <SkipNextIcon />
         </IconButton>
       </Box>

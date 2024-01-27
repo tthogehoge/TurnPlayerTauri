@@ -45,10 +45,6 @@ export type Media = {
 
 export type Files = Array<Media>;
 
-export type FuncSetMedia = (media: Media) => void;
-export type FuncSaveConfig = (config: Config) => void;
-export type FuncPlayList = (shift: number) => void;
-
 export type AEvent = "SetDir" | "SetStr" | "FindFiles" | "GetFiles";
 
 // 設定構造体
@@ -178,11 +174,6 @@ function App() {
     }
     // 設定ファイルへの書き出し
     await writeTextFile(CONFIG_FILE, JSON.stringify(s_config));
-  }
-
-  async function saveConfigC(config: Config) {
-    setConfig(config);
-    saveConfig();
   }
 
   function playList(shift: number) {
@@ -369,8 +360,6 @@ function App() {
             s_url={s_url}
             s_config={s_config}
             s_playing={s_playing}
-            saveConfig={saveConfigC}
-            playList={playList}
             setPlaying={setPlaying}
             onReady={() => {
               if (s_loaded) {
@@ -379,6 +368,24 @@ function App() {
               } else {
                 return false;
               }
+            }}
+            onPause={(pos:number)=>{
+              const cfg = s_config;
+              cfg.pos = pos;
+              setConfig(cfg);
+              saveConfig();
+            }}
+            onDefVolumeChange={(volume:number)=>{
+              const cfg = s_config;
+              cfg.volume = volume;
+              setConfig(cfg);
+              saveConfig();
+            }}
+            onNext={()=>{
+              playList(1);
+            }}
+            onPrev={()=>{
+              playList(-1);
             }}
           />
         </configContext.Provider>

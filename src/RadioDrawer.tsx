@@ -6,7 +6,7 @@ import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Adjust from "@mui/icons-material/Adjust";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Files, FuncSetMedia } from "./App";
+import { Files, Media } from "./App";
 import { FileList } from "./FileList";
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
   name: string;
   shouldScroll: boolean;
   setShouldScroll: (shouldscroll: boolean) => void;
-  funcsetmedia: FuncSetMedia;
+  funcsetmedia: (media: Media) => void;
 };
 
 export const RadioDrawer: React.FC<Props> = ({

@@ -3,12 +3,12 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import { v4 as uuidv4 } from 'uuid';
-import { Files, FuncSetMedia } from "./App";
+import { Files, Media } from "./App";
 
 type Props = {
   files: Files | null;
   name: string;
-  funcsetmedia: FuncSetMedia;
+  funcsetmedia: (media: Media) => void;
 };
 
 export const FileList = forwardRef<HTMLDivElement, Props>(
