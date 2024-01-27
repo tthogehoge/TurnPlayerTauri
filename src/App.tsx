@@ -1,4 +1,4 @@
-import { useState, useEffect, createRef, createContext } from "react";
+import { useState, useEffect, createContext } from "react";
 //import reactLogo from "./assets/react.svg";
 //import { desktopDir, join } from "@tauri-apps/api/path";
 import {
@@ -21,14 +21,12 @@ import {
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Container from "@mui/material/Container";
-import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import Adjust from "@mui/icons-material/Adjust";
 import CircularProgress from "@mui/material/CircularProgress";
-import { FileList } from "./FileList";
 import { Player } from "./Player";
+import { RadioDrawer } from "./RadioDrawer";
 import RenderInputAndButton from "./RenderInputAndButton";
 import { Input } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -122,8 +120,6 @@ function App() {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     zIndex: 9999,
   };
-
-  const scroll_ref = createRef<HTMLDivElement>();
 
   // 初回実行
   useEffect(() => {
@@ -240,13 +236,6 @@ function App() {
     });
   }
 
-  async function scroollToRef() {
-    scroll_ref!.current!.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-  }
-
   async function setMedia(media: Media) {
     s_config.pos = 0;
     s_config.media = media;
@@ -330,14 +319,6 @@ function App() {
     return podcastData;
   }
 
-  // transitionend イベントを待ってから scrollIntoView を実行する
-  const handleTransitionEnd = () => {
-    if (shouldScroll) {
-      scroollToRef();
-      setShouldScroll(false); // スクロール後にフラグをリセット
-    }
-  };
-
   return (
     <ThemeProvider theme={darkTheme}>
       <AppBar position="sticky" color="primary">
@@ -369,50 +350,15 @@ function App() {
       )}
 
       {/* 左のdrawer */}
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onTransitionEnd={handleTransitionEnd}
-      >
-        {/* drawerの一番上 */}
-        <AppBar position="sticky" color="primary">
-          <Toolbar>
-            {/* 閉じるボタン */}
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={() => setDrawerOpen(false)}
-              sx={{ marginRight: "auto" }}
-            >
-              <MenuIcon />
-            </IconButton>
-
-            {/* 現在位置にスクロール */}
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={() => scroollToRef()}
-              sx={{ marginRight: "auto" }}
-              style={{ width: "100%" }}
-            >
-              <Adjust />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-
-        {/* ファイルリスト */}
-        <FileList
-          files={s_medias}
-          name={s_config.media.name}
-          funcsetmedia={funcSetMedia}
-          ref={scroll_ref}
-        />
-      </Drawer>
+      <RadioDrawer
+        drawerOpen={drawerOpen}
+        setDrawerOpen={setDrawerOpen}
+        s_medias={s_medias}
+        name={s_config.media.name}
+        shouldScroll={shouldScroll}
+        setShouldScroll={setShouldScroll}
+        funcsetmedia={funcSetMedia}
+      />
 
       <Container>
         <configContext.Provider value={{ s_defvolume, setDefVolume }}>
