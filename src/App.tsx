@@ -342,42 +342,42 @@ function App() {
       />
 
       <Container>
-          {/* player */}
-          <Player
+        {/* player */}
+        <Player
           s_loaded={s_loaded}
-            s_volume={s_volume}
-            s_playname={s_playname}
-            s_url={s_url}
-            s_config={s_config}
-            s_playing={s_playing}
-            setPlaying={setPlaying}
-            onReady={() => {
-              if (s_loaded) {
-                setLoaded(false);
-                return true;
-              } else {
-                return false;
-              }
-            }}
-            onPause={(pos:number)=>{
-              const cfg = s_config;
-              cfg.pos = pos;
-              setConfig(cfg);
-              saveConfig();
-            }}
-            onDefVolumeChange={(volume:number)=>{
-              const cfg = s_config;
-              cfg.volume = volume;
-              setConfig(cfg);
-              saveConfig();
-            }}
-            onNext={()=>{
-              playList(1);
-            }}
-            onPrev={()=>{
-              playList(-1);
-            }}
-          />
+          s_volume={s_volume}
+          s_playname={s_playname}
+          s_url={s_url}
+          s_config={s_config}
+          s_playing={s_playing}
+          setPlaying={setPlaying}
+          onReady={() => {
+            if (s_loaded) {
+              setLoaded(false);
+              return true;
+            } else {
+              return false;
+            }
+          }}
+          onPause={(pos: number) => {
+            const cfg = s_config;
+            cfg.pos = pos;
+            setConfig(cfg);
+            saveConfig();
+          }}
+          onDefVolumeChange={(volume: number) => {
+            const cfg = s_config;
+            cfg.volume = volume;
+            setConfig(cfg);
+            saveConfig();
+          }}
+          onNext={() => {
+            playList(1);
+          }}
+          onPrev={() => {
+            playList(-1);
+          }}
+        />
 
         {/* podcast */}
         <Box display="flex" alignItems="center">

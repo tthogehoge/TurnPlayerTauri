@@ -12,7 +12,7 @@ import Slider from "@mui/material/Slider";
 import { register, unregister } from "@tauri-apps/api/globalShortcut";
 
 type Props = {
-    s_loaded: boolean;
+  s_loaded: boolean;
   s_volume: number;
   s_playname: string;
   s_url: string;
@@ -20,14 +20,14 @@ type Props = {
   s_playing: boolean;
   setPlaying: (playing: boolean) => void;
   onReady?: () => boolean;
-  onPause?: (time:number) => void;
-  onDefVolumeChange?: (volume:number) => void;
+  onPause?: (time: number) => void;
+  onDefVolumeChange?: (volume: number) => void;
   onNext?: () => void;
   onPrev?: () => void;
 };
 
 export const Player: React.FC<Props> = ({
-    s_loaded,
+  s_loaded,
   s_volume,
   s_playname,
   s_url,
@@ -42,13 +42,13 @@ export const Player: React.FC<Props> = ({
   onNext = () => {},
   onPrev = () => {},
 }) => {
-  const [ s_defvolume, setDefVolume ] = useState(1.0);
+  const [s_defvolume, setDefVolume] = useState(1.0);
 
-  useEffect(()=>{
-    if(s_loaded){
-        setDefVolume(s_config.volume);
+  useEffect(() => {
+    if (s_loaded) {
+      setDefVolume(s_config.volume);
     }
-  }, [s_loaded])
+  }, [s_loaded]);
 
   useEffect(() => {
     registerShortcut();
@@ -106,7 +106,7 @@ export const Player: React.FC<Props> = ({
           onPause={() => {
             setPlaying(false);
             if (player.current) {
-                onPause(player.current.getCurrentTime());
+              onPause(player.current.getCurrentTime());
             }
           }}
           onPlay={() => {
