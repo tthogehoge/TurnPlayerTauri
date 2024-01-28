@@ -52,7 +52,7 @@ export const RadioInput: React.FC<Props> = ({
         findFiles(s_config.set);
       }
       // ファイル互換性のため
-      if (s_config.set.podcast === undefined) {
+      if (typeof s_config.set.podcast === "undefined") {
         s_config.set.podcast = s_config.podcast;
         onUpdateSSetting(s_config.set);
       }
