@@ -24,12 +24,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Player } from "./Player";
 import { RadioDrawer } from "./RadioDrawer";
-import { RadioInput } from "./RadioInput";
-
-export type SSetting = {
-  dir: string;
-  str: string;
-};
+import { RadioInput, SSetting } from "./RadioInput";
 
 export type Media = {
   path: string;
@@ -39,8 +34,6 @@ export type Media = {
 };
 
 export type Files = Array<Media>;
-
-export type AEvent = "SetDir" | "SetStr" | "FindFiles" | "GetFiles";
 
 // 設定構造体
 export type Config = {
@@ -54,7 +47,7 @@ export type Config = {
 // 設定デフォルト値
 function getDefaultConfig() {
   let config: Config = {
-    set: { dir: "", str: "" },
+    set: { dir: "", str: "", podcast: "" },
     media: { path: "", name: "", date: 0, url: false },
     pos: 0,
     podcast: "",
@@ -143,6 +136,13 @@ function App() {
     }
     // 設定ファイルへの書き出し
     await writeTextFile(CONFIG_FILE, JSON.stringify(s_config));
+  }
+
+  function updateSSetting(ssetting: SSetting) {
+    let c = s_config;
+    c.set = ssetting;
+    setConfig(c);
+    saveConfig();
   }
 
   function playList(shift: number) {
@@ -274,8 +274,7 @@ function App() {
         <RadioInput
           s_loaded={s_loaded}
           s_config={s_config}
-          setConfig={setConfig}
-          saveConfig={saveConfig}
+          onUpdateSSetting={updateSSetting}
           setMedias={setMedias}
           setLoading={setLoading}
           scrollToCurrent={scrollToCurrent}

@@ -3,13 +3,13 @@ import React from "react";
 import { Box, Input, Button, IconButton } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
 import SearchIcon from "@mui/icons-material/Search";
-import { /* SSetting, */ AEvent } from "./App";
+import { /* SSetting, */ AEvent } from "./RadioInput";
 import { open } from "@tauri-apps/api/dialog";
 
 type RenderInputAndButtonProps = {
   dir: string;
   str: string;
-  callEvent: (event:AEvent, opt:any) => void;
+  callEvent: (event: AEvent, opt: any) => void;
 };
 
 const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
@@ -49,7 +49,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
         <Input
           id="dir-input"
           onChange={(e: any) => callEvent("SetDir", e.currentTarget.value)}
-          onSubmit={() => callEvent("FindFiles", {dir, str})}
+          onSubmit={() => callEvent("FindFiles", { dir, str })}
           placeholder="Enter a directory..."
           value={dir}
           fullWidth={true}
@@ -59,7 +59,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
       {/* 検索文字列 */}
       <Box display="flex" alignItems="center">
         <IconButton
-          onClick={() => callEvent("FindFiles", {dir, str})}
+          onClick={() => callEvent("FindFiles", { dir, str })}
           aria-label="select folder"
         >
           <SearchIcon />
@@ -68,9 +68,9 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
           id="str-input"
           onChange={(e: any) => callEvent("SetStr", e.currentTarget.value)}
           onSubmit={(e: any) => {
-          e.preventDefault();
-          callEvent("FindFiles", {dir, str});
-        }}
+            e.preventDefault();
+            callEvent("FindFiles", { dir, str });
+          }}
           placeholder="Enter a string..."
           value={str}
           fullWidth={true}
@@ -83,7 +83,7 @@ const RenderInputAndButton: React.FC<RenderInputAndButtonProps> = ({
         type="submit"
         onClick={(e: any) => {
           e.preventDefault();
-          callEvent("FindFiles", {dir, str});
+          callEvent("FindFiles", { dir, str });
         }}
       >
         Search

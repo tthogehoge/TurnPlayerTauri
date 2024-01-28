@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import SearchIcon from "@mui/icons-material/Search";
-import { Config, Files, Media, SSetting, AEvent } from "./App";
+import { Config, Files, Media } from "./App";
 import { invoke } from "@tauri-apps/api/tauri";
 import { fetch, ResponseType } from "@tauri-apps/api/http";
 import {
@@ -13,11 +13,18 @@ import {
 } from "@mui/material";
 import RenderInputAndButton from "./RenderInputAndButton";
 
+export type AEvent = "SetDir" | "SetStr" | "FindFiles" | "GetFiles";
+
+export type SSetting = {
+  dir: string;
+  str: string;
+  podcast: string;
+};
+
 type Props = {
   s_loaded: boolean;
   s_config: Config;
-  setConfig: (config: Config) => void;
-  saveConfig: () => void;
+  onUpdateSSetting: (ssetting: SSetting) => void;
   setMedias: (files: Files | null) => void;
   setLoading?: (loading: boolean) => void;
   scrollToCurrent?: () => void;
@@ -26,8 +33,7 @@ type Props = {
 export const RadioInput: React.FC<Props> = ({
   s_loaded,
   s_config,
-  setConfig,
-  saveConfig,
+  onUpdateSSetting,
   setMedias,
   setLoading = () => {},
   scrollToCurrent = () => {},
@@ -45,8 +51,13 @@ export const RadioInput: React.FC<Props> = ({
       if (s_config.set.dir != "") {
         findFiles(s_config.set);
       }
-      setPodcast(s_config.podcast);
-      fetchPodcastData(s_config.podcast);
+      // ファイル互換性のため
+      if (s_config.set.podcast === undefined) {
+        s_config.set.podcast = s_config.podcast;
+        onUpdateSSetting(s_config.set);
+      }
+      setPodcast(s_config.set.podcast);
+      fetchPodcastData(s_config.set.podcast);
     }
   }, [s_loaded]);
 
@@ -67,8 +78,7 @@ export const RadioInput: React.FC<Props> = ({
         let c = s_config;
         c.set.dir = set.dir;
         c.set.str = set.str;
-        setConfig(c);
-        saveConfig();
+        onUpdateSSetting(c.set);
         findFiles(opt);
         break;
       case "GetFiles":
@@ -153,9 +163,8 @@ export const RadioInput: React.FC<Props> = ({
         <IconButton
           onClick={() => {
             let c = s_config;
-            c.podcast = s_podcast;
-            setConfig(c);
-            saveConfig();
+            c.set.podcast = s_podcast;
+            onUpdateSSetting(c.set);
             fetchPodcastData(s_podcast);
           }}
           aria-label="select folder"
