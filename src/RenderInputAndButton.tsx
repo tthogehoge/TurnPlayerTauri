@@ -4,7 +4,7 @@ import { Box, Input, Button, IconButton } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
 import SearchIcon from "@mui/icons-material/Search";
 import { /* SSetting, */ AEvent } from "./RadioInput";
-import { open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 
 type RenderInputAndButtonProps = {
   dir: string;

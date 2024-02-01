@@ -9,7 +9,8 @@ import SkipNextIcon from "@mui/icons-material/SkipNext";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import Slider from "@mui/material/Slider";
-import { register, unregister } from "@tauri-apps/api/globalShortcut";
+import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
+import { platform } from "@tauri-apps/plugin-os";
 
 type Props = {
   s_loaded: boolean;
@@ -55,14 +56,18 @@ export const Player: React.FC<Props> = ({
   }, []);
 
   async function registerShortcut() {
-    await unregister("F1");
-    await unregister("F2");
-    await register("F1", () => {
-      setPlaying(false);
-    });
-    await register("F2", () => {
-      setPlaying(true);
-    });
+    const ua = await platform();
+    if (ua == "windows") {
+      console.log(ua);
+      await unregister("F1");
+      await unregister("F2");
+      await register("F1", () => {
+        setPlaying(false);
+      });
+      await register("F2", () => {
+        setPlaying(true);
+      });
+    }
   }
 
   // react player

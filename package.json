@@ -1,5 +1,5 @@
 {
-  "name": "tauri_test",
+  "name": "tauri-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,24 +10,31 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.1",
+    "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.19",
-    "@mui/material": "^5.14.18",
-    "@tauri-apps/api": "^1.5.1",
+    "@mui/icons-material": "^5.15.6",
+    "@mui/material": "^5.15.6",
+    "@tauri-apps/api": "^2.0.0-alpha.13",
+    "@tauri-apps/plugin-dialog": "^2.0.0-alpha.5",
+    "@tauri-apps/plugin-fs": "^2.0.0-alpha.6",
+    "@tauri-apps/plugin-global-shortcut": "^2.0.0-alpha.5",
+    "@tauri-apps/plugin-http": "^2.0.0-alpha.6",
+    "@tauri-apps/plugin-os": "^2.0.0-alpha.6",
+    "@tauri-apps/plugin-shell": "^2.0.0-alpha.3",
+    "@tauri-apps/plugin-store": "^2.0.0-alpha.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-player": "^2.13.0",
+    "react-player": "^2.14.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.6",
+    "@tauri-apps/cli": "^2.0.0-alpha.20",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
-    "@types/uuid": "^9.0.7",
-    "prettier": "^3.1.0",
-    "@vitejs/plugin-react": "^4.0.3",
+    "@types/uuid": "^9.0.8",
+    "@vitejs/plugin-react": "^4.2.1",
+    "internal-ip": "^7.0.0",
     "typescript": "^5.0.2",
-    "vite": "^4.4.4"
+    "vite": "^5.0.0"
   }
 }

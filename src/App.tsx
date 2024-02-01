@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 //import reactLogo from "./assets/react.svg";
 //import { desktopDir, join } from "@tauri-apps/api/path";
+//import { invoke } from "@tauri-apps/api/core";
 import {
-  BaseDirectory,
+  //BaseDirectory,
   readTextFile,
   writeTextFile,
-  exists,
-  createDir,
-} from "@tauri-apps/api/fs";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+  //exists,
+  //mkdir,
+} from "@tauri-apps/plugin-fs";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   createTheme,
   PaletteMode,
@@ -25,6 +26,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { Player } from "./Player";
 import { RadioDrawer } from "./RadioDrawer";
 import { RadioInput, SSetting } from "./RadioInput";
+import { platform } from "@tauri-apps/plugin-os";
+import { Store } from "@tauri-apps/plugin-store";
 
 export type Media = {
   path: string;
@@ -56,8 +59,38 @@ function getDefaultConfig() {
   return config;
 }
 
+/*
+async function reqPermissions() {
+  type PermissionState =
+    | "granted"
+    | "denied"
+    | "prompt"
+    | "prompt-with-rationale";
+
+  interface Permissions {
+    postNotification: PermissionState;
+  }
+
+  // check permission state
+  const permission = await invoke<Permissions>("plugin:fs|checkPermissions");
+
+  if (permission.postNotification === "prompt-with-rationale") {
+    // show information to the user about why permission is needed
+  }
+
+  // request permission
+  if (permission.postNotification.startsWith("prompt")) {
+    const state = await invoke<Permissions>("plugin:fs|requestPermissions", {
+      permissions: ["postNotification"],
+    });
+    console.log(state.postNotification);
+  }
+}
+*/
+
 // 設定ファイル
 const CONFIG_FILE: string = "config.json";
+const store = new Store("config.dat");
 
 function App() {
   const [s_loaded, setLoaded] = useState(false);
@@ -97,13 +130,29 @@ function App() {
   }, []);
 
   async function loadConfig() {
-    var config = s_config;
+    var config: Config = { ...s_config };
+    const ua = await platform();
+    console.log(ua);
     try {
       // var curdir = await invoke<string>("get_current_dir");
       // 設定ファイルの読み込み
-      const profileBookStr = await readTextFile(CONFIG_FILE);
-      // パース
-      config = JSON.parse(profileBookStr) as Config;
+      if (ua == "android") {
+        /*
+        reqPermissions();
+        const profileBookStr = await readTextFile(CONFIG_FILE, {
+          baseDir: BaseDirectory.AppData,
+        });
+        config = JSON.parse(profileBookStr) as Config;
+        */
+        /*
+        const profileBookStr = (await store.get(CONFIG_FILE)) as string;
+        config = JSON.parse(profileBookStr) as Config;
+        */
+        config = (await store.get(CONFIG_FILE)) as Config;
+      } else {
+        const profileBookStr = await readTextFile(CONFIG_FILE);
+        config = JSON.parse(profileBookStr) as Config;
+      }
       setConfig(config);
     } catch (error) {
       // 初回はファイルがないのでエラー
@@ -129,17 +178,55 @@ function App() {
   }
 
   async function saveConfig() {
-    // ディレクトリ存在チェック
-    const ext = await exists("", { dir: BaseDirectory.App });
-    if (!ext) {
-      await createDir("", { dir: BaseDirectory.App });
+    const ua = await platform();
+    console.log(ua);
+    if (ua == "android") {
+      /*
+      // ディレクトリ存在チェック
+      try {
+        const ext = await exists("", { baseDir: BaseDirectory.AppData });
+        if (!ext) {
+          await mkdir("", { baseDir: BaseDirectory.AppData });
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+      // write test
+      try {
+        await writeTextFile(CONFIG_FILE, JSON.stringify(s_config), {
+          baseDir: BaseDirectory.AppData,
+        });
+      } catch (error) {
+        console.warn("write test");
+        console.warn(error);
+      }
+      // write test 2
+      try {
+        await writeTextFile(CONFIG_FILE, JSON.stringify(s_config));
+      } catch (error) {
+        console.warn("write test2");
+        console.warn(error);
+      }
+      */
+      // write test 3
+      try {
+        /*
+        await store.set(CONFIG_FILE, JSON.stringify(s_config));
+        */
+        await store.set(CONFIG_FILE, s_config);
+        await store.save();
+      } catch (error) {
+        console.warn("write test3");
+        console.warn(error);
+      }
+    } else {
+      // 設定ファイルへの書き出し
+      await writeTextFile(CONFIG_FILE, JSON.stringify(s_config));
     }
-    // 設定ファイルへの書き出し
-    await writeTextFile(CONFIG_FILE, JSON.stringify(s_config));
   }
 
   function updateSSetting(ssetting: SSetting) {
-    let c = s_config;
+    let c = { ...s_config };
     c.set = ssetting;
     setConfig(c);
     saveConfig();
@@ -172,9 +259,10 @@ function App() {
   }
 
   async function setMedia(media: Media) {
-    s_config.pos = 0;
-    s_config.media = media;
-    setConfig(s_config);
+    let c = { ...s_config };
+    c.pos = 0;
+    c.media = media;
+    setConfig(c);
     saveConfig();
     updateFileName(media);
   }
@@ -233,6 +321,16 @@ function App() {
       />
 
       <Container>
+        {/* radio input */}
+        <RadioInput
+          s_loaded={s_loaded}
+          s_config={s_config}
+          onUpdateSSetting={updateSSetting}
+          setMedias={setMedias}
+          setLoading={setLoading}
+          scrollToCurrent={scrollToCurrent}
+        />
+
         {/* player */}
         <Player
           s_loaded={s_loaded}
@@ -251,13 +349,13 @@ function App() {
             }
           }}
           onPause={(pos: number) => {
-            const cfg = s_config;
+            const cfg = { ...s_config };
             cfg.pos = pos;
             setConfig(cfg);
             saveConfig();
           }}
           onDefVolumeChange={(volume: number) => {
-            const cfg = s_config;
+            const cfg = { ...s_config };
             cfg.volume = volume;
             setConfig(cfg);
             saveConfig();
@@ -268,16 +366,6 @@ function App() {
           onPrev={() => {
             playList(-1);
           }}
-        />
-
-        {/* radio input */}
-        <RadioInput
-          s_loaded={s_loaded}
-          s_config={s_config}
-          onUpdateSSetting={updateSSetting}
-          setMedias={setMedias}
-          setLoading={setLoading}
-          scrollToCurrent={scrollToCurrent}
         />
       </Container>
     </ThemeProvider>

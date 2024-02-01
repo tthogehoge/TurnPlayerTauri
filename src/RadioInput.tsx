@@ -2,8 +2,8 @@ import React from "react";
 import { useState, useEffect } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import { Config, Files, Media } from "./App";
-import { invoke } from "@tauri-apps/api/tauri";
-import { fetch, ResponseType } from "@tauri-apps/api/http";
+import { invoke } from "@tauri-apps/api/core";
+import { fetch } from "@tauri-apps/plugin-http";
 import {
   Box,
   Input,
@@ -123,15 +123,10 @@ export const RadioInput: React.FC<Props> = ({
     // 例えば、外部APIからデータを取得する場合はここにAPIリクエストを行うコードを記述する
     // 取得したデータは適切な形式に整形して返す
     // 例: const podcastData = await fetch('https://example.com/api/podcast').then(res => res.json());
-    const podcastData = await fetch(url, {
-      method: "GET",
-      responseType: ResponseType.Text,
-    });
+    const podcastData = await fetch(url);
+    const podtext = await podcastData.text();
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(
-      podcastData.data as string,
-      "text/xml"
-    );
+    const xmlDoc = parser.parseFromString(podtext as string, "text/xml");
     console.log(xmlDoc);
     const urls: Files = [];
     const items = xmlDoc.getElementsByTagName("item");
