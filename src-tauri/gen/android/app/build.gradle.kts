@@ -17,9 +17,9 @@ android {
     }
     signingConfigs {
         create("mySigningConfig") {
-            // keytool -genkey...ã§ä½œã‚Œã‚‹ã€‚ãƒ‡ãƒãƒƒã‚°ç”¨ã®ã¯ã€`~\.android\debug.keystore`ã«ã‚ã‚‹
+            // keytool -genkey...‚Åì‚ê‚éBƒfƒoƒbƒO—p‚Ì‚ÍA`~\.android\debug.keystore`‚É‚ ‚é
             storeFile = file("C:/Users/tthog/.android/my-release-key.jks")
-            // KeyStoreä½œæˆæ™‚ã«è¨­å®šã—ãŸå€¤ã‚’è¦šãˆã¦ãŠãå¿…è¦æœ‰ã‚Š
+            // KeyStoreì¬‚Éİ’è‚µ‚½’l‚ğŠo‚¦‚Ä‚¨‚­•K—v—L‚è
             storePassword = "keypassword"
             keyAlias = "my-alias"
             keyPassword = "keypassword"

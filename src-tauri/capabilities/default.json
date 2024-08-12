@@ -1,0 +1,40 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:default",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$APPDATA" },
+        { "path": "$APPDATA/**" },
+        { "path": "$APPDATA/"},
+        { "path": "$APPDATA/**"},
+        { "path": "$AUDIO/"},
+        { "path": "$AUDIO/**"},
+        { "path": "$DATA/"},
+        { "path": "$DATA/**"},
+        { "path": "$LOCALDATA/"},
+        { "path": "$LOCALDATA/**"},
+        { "path": "$VIDEO/"},
+        { "path": "$VIDEO/**"},
+        { "path": "/**"},
+        { "path": "**"}
+      ]
+    },
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-register",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://*" },
+        { "url": "http://*" }
+      ]
+    }
+  ]
+}

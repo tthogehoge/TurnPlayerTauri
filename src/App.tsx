@@ -149,6 +149,12 @@ function App() {
         config = JSON.parse(profileBookStr) as Config;
         */
         config = (await store.get(CONFIG_FILE)) as Config;
+        if (config.media.path == null) {
+          config.media.path = "";
+          config.media.name = "";
+          config.media.date = 0;
+          config.media.url = false;
+        }
       } else {
         const profileBookStr = await readTextFile(CONFIG_FILE);
         config = JSON.parse(profileBookStr) as Config;

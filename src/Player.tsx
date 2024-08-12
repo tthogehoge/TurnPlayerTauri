@@ -59,14 +59,22 @@ export const Player: React.FC<Props> = ({
     const ua = await platform();
     if (ua == "windows") {
       console.log(ua);
-      await unregister("F1");
-      await unregister("F2");
-      await register("F1", () => {
-        setPlaying(false);
-      });
-      await register("F2", () => {
-        setPlaying(true);
-      });
+      try{
+        await unregister("F1");
+        await unregister("F2");
+      }catch(e){
+        console.log(e);
+      }
+      try{
+        await register("F1", () => {
+          setPlaying(false);
+        });
+        await register("F2", () => {
+          setPlaying(true);
+        });
+      }catch(e){
+        console.log(e);
+      }
     }
   }
 
