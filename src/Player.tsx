@@ -101,9 +101,19 @@ export const Player: React.FC<Props> = ({
       <Box component="p">{s_playname}</Box>
       {/* player */}
       <Box display="flex" alignItems="center">
-        <IconButton sx={{ height: "100%" }} onClick={() => onPrev()}>
+        <IconButton onClick={() => onPrev()} sx={{ flex: 1, height: "30vh" }}>
           <SkipPreviousIcon />
         </IconButton>
+        <IconButton onClick={() => setPlaying(!s_playing)} sx={{ flex: 1, height: "30vh" }}>
+          {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
+        </IconButton>
+        <IconButton onClick={() => onNext()} sx={{ flex: 1, height: "30vh" }}>
+          <SkipNextIcon />
+        </IconButton>
+      </Box>
+
+      {/* player UI */}
+      <Box display="flex" alignItems="center">
         <ReactPlayer
           ref={player}
           url={s_url}
@@ -126,18 +136,10 @@ export const Player: React.FC<Props> = ({
             setPlaying(true);
           }}
         />
-        <IconButton sx={{ height: "100%" }} onClick={() => onNext()}>
-          <SkipNextIcon />
-        </IconButton>
       </Box>
-
-      {/* player UI */}
       <Box display="flex" alignItems="center">
-        <IconButton onClick={() => setPlaying(!s_playing)} sx={{ flex: 1 }}>
-          {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
-        </IconButton>
         <Slider
-          sx={{ width: "20%" }}
+          sx={{ width: "100%" }}
           min={0}
           max={1.0}
           step={0.01}
