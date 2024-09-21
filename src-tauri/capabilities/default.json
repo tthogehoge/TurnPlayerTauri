@@ -40,6 +40,7 @@
         { "url": "http://*" }
       ]
     },
+    "keep-screen-on:allow-keep-screen-on",
     "os:allow-platform",
     "store:allow-get",
     "store:allow-set",
