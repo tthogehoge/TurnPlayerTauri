@@ -11,6 +11,7 @@ import PauseIcon from "@mui/icons-material/Pause";
 import Slider from "@mui/material/Slider";
 import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { platform } from "@tauri-apps/plugin-os";
+import { keepScreenOn } from "tauri-plugin-keep-screen-on-api";
 
 type Props = {
   s_loaded: boolean;
@@ -59,20 +60,20 @@ export const Player: React.FC<Props> = ({
     const ua = await platform();
     if (ua == "windows") {
       console.log(ua);
-      try{
+      try {
         await unregister("F1");
         await unregister("F2");
-      }catch(e){
+      } catch (e) {
         console.log(e);
       }
-      try{
+      try {
         await register("F1", () => {
           setPlaying(false);
         });
         await register("F2", () => {
           setPlaying(true);
         });
-      }catch(e){
+      } catch (e) {
         console.log(e);
       }
     }
@@ -104,7 +105,10 @@ export const Player: React.FC<Props> = ({
         <IconButton onClick={() => onPrev()} sx={{ flex: 1, height: "30vh" }}>
           <SkipPreviousIcon />
         </IconButton>
-        <IconButton onClick={() => setPlaying(!s_playing)} sx={{ flex: 1, height: "30vh" }}>
+        <IconButton
+          onClick={() => setPlaying(!s_playing)}
+          sx={{ flex: 1, height: "30vh" }}
+        >
           {s_playing ? <PauseIcon /> : <PlayArrowIcon />}
         </IconButton>
         <IconButton onClick={() => onNext()} sx={{ flex: 1, height: "30vh" }}>
@@ -128,12 +132,14 @@ export const Player: React.FC<Props> = ({
           }}
           onPause={() => {
             setPlaying(false);
+            keepScreenOn(false);
             if (player.current) {
               onPause(player.current.getCurrentTime());
             }
           }}
           onPlay={() => {
             setPlaying(true);
+            keepScreenOn(true);
           }}
         />
       </Box>

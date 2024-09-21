@@ -6,6 +6,9 @@
   "permissions": [
     "core:default",
     "shell:default",
+    "fs:scope-audio-recursive",
+    "fs:allow-audio-read-recursive",
+    "fs:allow-audio-write-recursive",
     {
       "identifier": "fs:scope",
       "allow": [
@@ -25,7 +28,7 @@
         { "path": "**"}
       ]
     },
-    "dialog:default",
+    "dialog:allow-open",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
     "global-shortcut:allow-unregister",
@@ -36,6 +39,10 @@
         { "url": "https://*" },
         { "url": "http://*" }
       ]
-    }
+    },
+    "os:allow-platform",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-save"
   ]
 }

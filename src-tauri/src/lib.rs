@@ -60,7 +60,7 @@ use chrono::serde::ts_seconds;
 static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 
 // なぜかandroidのreactplayerで再生できないのでcoverを削除してみる
-fn modify_mp4(path: std::path::PathBuf) {
+fn modify_mp4(path: &std::path::PathBuf) {
     if let Some(filename) = path.file_name() {
         let filename = filename.to_string_lossy().to_string();
         let tag = mp4ameta::Tag::read_from_path(path.clone());
@@ -86,11 +86,11 @@ fn modify_mp4(path: std::path::PathBuf) {
                     //let _ = std::fs::copy(path.clone(), filename.clone());
                     if let Err(r) = newtag.write_to_path(path.clone()) {
                         println!("mp4 tag write fail: {}", r);
-                    }else{
+                    } else {
                         println!("mp4 tag write ok");
                     }
                 }
-            },
+            }
             Err(tag) => println!("mp4 ng: {} {}", filename.clone(), tag),
         }
     }
@@ -123,10 +123,8 @@ fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
                     if let Some(filename) = path.file_name() {
                         let filename = filename.to_string_lossy().to_string();
 
-                        // なぜかandroidのreactplayerで再生できないのでcoverを削除してみる
-                        if cfg!(windows) {
-                            modify_mp4(path.clone());
-                        }
+                        // なぜかandroidのreactplayerで再生できないのでcoverを削除してみる->無意味
+                        // modify_mp4(&path);
 
                         // let ok = filename.contains(&set.str);
                         let mut ok = true;
@@ -247,6 +245,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_keep_screen_on::init())
         .invoke_handler(tauri::generate_handler![
             get_current_dir,
             find_files,
