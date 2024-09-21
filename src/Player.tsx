@@ -12,6 +12,7 @@ import Slider from "@mui/material/Slider";
 import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { platform } from "@tauri-apps/plugin-os";
 import { keepScreenOn } from "tauri-plugin-keep-screen-on-api";
+import { HPlayer } from "./HPlayer";
 
 type Props = {
   s_loaded: boolean;
@@ -118,11 +119,11 @@ export const Player: React.FC<Props> = ({
 
       {/* player UI */}
       <Box display="flex" alignItems="center">
-        <ReactPlayer
-          ref={player}
+        <HPlayer
+          //ref={player}
           url={s_url}
           playing={s_playing}
-          controls={true}
+          //controls={true}
           volume={s_volume}
           onReady={() => {
             onPlayerReady();
