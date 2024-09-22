@@ -15,6 +15,7 @@ import {
   PaletteMode,
   // Stack,
   ThemeProvider,
+  Box,
 } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -28,6 +29,14 @@ import { RadioDrawer } from "./RadioDrawer";
 import { RadioInput, SSetting } from "./RadioInput";
 import { platform } from "@tauri-apps/plugin-os";
 import { Store } from "@tauri-apps/plugin-store";
+import { listen } from '@tauri-apps/api/event';
+import List from "@mui/material/List";
+import ListItemText from "@mui/material/ListItemText";
+
+type SMessage = {
+  msg: string;
+  line: number;
+};
 
 export type Media = {
   path: string;
@@ -104,10 +113,17 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [s_msglist, setMsgList] = useState(Array<string>);
   const darkTheme = createTheme({
     palette: {
       mode,
     },
+  });
+
+  listen<SMessage>('message', (event) => {
+    let ary = s_msglist;
+    ary.push(`msg ${event.payload.msg} @ ${event.payload.line}`);
+    setMsgList(ary);
   });
 
   // スピナーを画面いっぱいに表示するためのスタイルを追加します
@@ -373,6 +389,17 @@ function App() {
             playList(-1);
           }}
         />
+        <Box display="flex" alignItems="center">
+          <List>
+            {
+              s_msglist.map((f) => {
+                return (
+                  <ListItemText>{f}</ListItemText>
+                )
+              })
+            }
+          </List>
+        </Box>
       </Container>
     </ThemeProvider>
   );

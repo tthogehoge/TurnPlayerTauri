@@ -57,7 +57,7 @@ export const Player: React.FC<Props> = ({
   }, []);
 
   async function registerShortcut() {
-    const ua = await platform();
+    const ua = platform();
     if (ua == "windows") {
       console.log(ua);
       try {

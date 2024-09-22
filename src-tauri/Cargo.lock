@@ -3895,6 +3895,7 @@ dependencies = [
 name = "tauri-app"
 version = "0.0.0"
 dependencies = [
+ "byteorder",
  "chrono",
  "mp4",
  "mp4ameta",
