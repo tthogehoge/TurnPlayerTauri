@@ -124,6 +124,8 @@ export const RadioInput: React.FC<Props> = ({
     // 取得したデータは適切な形式に整形して返す
     // 例: const podcastData = await fetch('https://example.com/api/podcast').then(res => res.json());
     const podcastData = await fetch(url);
+    var dat = podcastData.arrayBuffer;
+    console.log(dat);
     const podtext = await podcastData.text();
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(podtext as string, "text/xml");

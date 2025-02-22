@@ -6,6 +6,7 @@ import {
   //BaseDirectory,
   readTextFile,
   writeTextFile,
+  writeFile,
   //exists,
   //mkdir,
 } from "@tauri-apps/plugin-fs";
@@ -32,6 +33,7 @@ import { Store } from "@tauri-apps/plugin-store";
 import { listen } from '@tauri-apps/api/event';
 import List from "@mui/material/List";
 import ListItemText from "@mui/material/ListItemText";
+import { invoke } from "@tauri-apps/api/core";
 
 type SMessage = {
   msg: string;
@@ -105,7 +107,7 @@ function App() {
   const [s_loaded, setLoaded] = useState(false);
   const [s_playing, setPlaying] = useState(false);
   const [s_playname, setPlayname] = useState("");
-  const [s_url, setUrl] = useState("");
+  const [s_url, setUrl] = useState<string|MediaStream>("");
   const [s_medias, setMedias] = useState<Files | null>(null);
   const [s_config, setConfig] = useState<Config>(getDefaultConfig());
   const [s_volume, setVolume] = useState(1.0);
@@ -291,9 +293,54 @@ function App() {
 
   async function updateFileName(media: Media) {
     setPlayname(media.name);
-    let new_url = media.path;
+    let new_url: string|MediaStream = media.path;
     if (!media.url) {
+      let path = media.path;
+      // modifyの必要があるかチェック
+      await invoke<boolean>("check_modify_mp4", {path}).catch(
+        (err) => {
+          console.error(err);
+        }
+      );
       new_url = convertFileSrc(media.path);
+      /*
+      var needmodify = await invoke<boolean>("check_mp4", {path}).catch(
+        (err) => {
+          console.error(err);
+        }
+      );
+      console.log(needmodify);
+      if(needmodify){
+        var dat = await invoke<Uint8Array>("trans_mp4", {path}).catch(
+          (err) => {
+            console.error(err);
+          }
+        )
+        console.log(dat);
+        if(dat){
+          var ret = await writeFile(path, dat).catch(
+            (err) => {
+              console.error(err);
+            }
+          );
+          console.log(ret);
+          new_url = convertFileSrc(media.path);
+        }
+      }else{
+        new_url = convertFileSrc(media.path);
+        const res = await fetch(new_url);
+        const dat = await res.arrayBuffer();
+        var actx = new window.AudioContext();
+        var sdest = actx.createMediaStreamDestination();
+        var src = actx.createBufferSource();
+        actx.decodeAudioData(dat, function(buffer) {
+          src.buffer = buffer;
+          src.connect(sdest);
+          src.start();
+        });
+        new_url = sdest.stream;
+      }
+      */
       setVolume(s_config.volume);
     } else {
       setVolume(1.0);

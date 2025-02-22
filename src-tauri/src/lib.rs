@@ -10,12 +10,14 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
+use std::io::Write;
 use std::io::Seek;
 use std::io::BufReader;
-//use std::io::BufWriter;
+use std::io::BufWriter;
 use std::sync::Mutex;
 use std::fs;
 use std::fs::OpenOptions;
+use tauri_plugin_fs::Fs;
 use tauri_plugin_fs::FsExt;
 //use chrono::{Datelike, Timelike};
 use chrono::serde::ts_seconds;
@@ -100,9 +102,17 @@ fn check_mp4(app: AppHandle, path: String) -> Result<bool,Error> {
         file.seek(std::io::SeekFrom::Start(offset))?;
         let bsize = file.read_u32::<byteorder::BigEndian>()? as u64;
         // 4byte取得 -> key
-        let mut key = [0u8; 4];
-        file.read_exact(&mut key)?;
-        let key = String::from_utf8(key.to_vec())?;
+        let mut keybuf = [0u8; 4];
+        file.read_exact(&mut keybuf)?;
+        let key;
+        match String::from_utf8(keybuf.to_vec()) {
+            Ok(v) => {
+                key = v;
+            },
+            Err(_v) => {
+                key = "____".to_string();
+            }
+        }
         println!("{}<{} {} {}", offset, size, bsize, key);
 
         if offset + bsize <= size {
@@ -110,7 +120,7 @@ fn check_mp4(app: AppHandle, path: String) -> Result<bool,Error> {
             keys.push(key);
             offset += bsize;
         }else{
-            tell_message(&app, "need to delete".to_string(), line!());
+            tell_message(&app, format!("need to delete: {}", path), line!());
             ret = false;
             break;
         }
@@ -118,14 +128,18 @@ fn check_mp4(app: AppHandle, path: String) -> Result<bool,Error> {
 
     let mut mdat = false;
     for k in keys {
+        println!("key {}", k);
         if k=="mdat" {
+            println!("mdat");
             mdat = true;
         }
-        if k=="moov" && mdat==false {
-            tell_message(&app, "need to reorder".to_string(), line!());
+        if k=="moov" && mdat==true {
+            println!("moov need to reorder");
+            tell_message(&app, format!("need to reorder: {}", path), line!());
             ret = false;
         }
     }
+    ret = false;
 
     return Ok(ret);
 }
@@ -150,9 +164,17 @@ fn trans_mp4(_app: AppHandle, path: String) -> Result<Vec<u8>,Error> {
         file.seek(std::io::SeekFrom::Start(offset))?;
         let bsize = file.read_u32::<byteorder::BigEndian>()? as u64;
         // 4byte取得 -> key
-        let mut key = [0u8; 4];
-        file.read_exact(&mut key)?;
-        let key = String::from_utf8(key.to_vec())?;
+        let mut keybuf = [0u8; 4];
+        file.read_exact(&mut keybuf)?;
+        let key;
+        match String::from_utf8(keybuf.to_vec()) {
+            Ok(v) => {
+                key = v;
+            },
+            Err(_v) => {
+                key = "____".to_string();
+            }
+        }
 
         if offset + bsize <= size {
             // data read
@@ -174,20 +196,55 @@ fn trans_mp4(_app: AppHandle, path: String) -> Result<Vec<u8>,Error> {
         ret.extend(dat);
     }
     else { return Err(Error::Other) }
-    if let Some(dat) = hash.get("moov") {
-        ret.extend(dat);
-    }
-    else { return Err(Error::Other) }
+
     if let Some(dat) = hash.get("free") {
         ret.extend(dat);
     }
     else { return Err(Error::Other) }
+
+    if let Some(dat) = hash.get("moov") {
+        ret.extend(dat);
+    }
+    else { return Err(Error::Other) }
+
     if let Some(dat) = hash.get("mdat") {
         ret.extend(dat);
     }
     else { return Err(Error::Other) }
 
     Ok(ret)
+}
+
+#[tauri::command]
+fn check_modify_mp4(app: AppHandle, path: String) -> Result<bool,Error> {
+    let ret = check_mp4(app.clone(), path.clone())?;
+    if ret {
+        tell_message(&app, format!("no need to modify: {}", path), line!());
+        return Ok(true); // no need to modify
+    }
+    println!("trans");
+    let Ok(mut dat) = trans_mp4(app.clone(), path.clone()) else {
+        tell_message(&app, format!("trans fail"), line!());
+        return Err(Error::Other);
+    };
+
+    println!("write start {}", dat.len());
+    //let file = tauri_plugin_fs::OpenOptions::new().write(true).open(path)?;
+    let Ok(mut file) = OpenOptions::new().write(true).open(path) else {
+        tell_message(&app, format!("open fail"), line!());
+        return Err(Error::Other);
+    };
+    let Ok(_) = file.set_len(dat.len() as u64) else {
+        tell_message(&app, format!("set len fail"), line!());
+        return Err(Error::Other);
+    };
+    // let mut file = BufWriter::new(file);
+    let Ok(_) = file.write_all(dat.as_mut_slice()) else {
+        tell_message(&app, format!("write fail"), line!());
+        return Err(Error::Other);
+    };
+    println!("write end");
+    return Ok(true);
 }
 
 // filenameからdatetimeを得る
@@ -245,7 +302,7 @@ fn make_media(app: &AppHandle, path: &std::path::PathBuf, setstr: &String) -> Re
     /*
     // androidのreactplayerで再生できないのでm4aファイルをmodify
     if ext=="m4a" {
-        match modify_mp4(&app, &path) {
+        match check_modify_mp4(&app, &path) {
             Ok(ret) => {
                 if ret {
                     // tell_message(&app, format!("check ok: {}", filename), line!());
@@ -390,6 +447,7 @@ pub fn run() {
             get_files,
             check_mp4,
             trans_mp4,
+            check_modify_mp4,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

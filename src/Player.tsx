@@ -17,7 +17,7 @@ type Props = {
   s_loaded: boolean;
   s_volume: number;
   s_playname: string;
-  s_url: string;
+  s_url: string|MediaStream;
   s_config: Config;
   s_playing: boolean;
   setPlaying: (playing: boolean) => void;
