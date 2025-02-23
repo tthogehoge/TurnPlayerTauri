@@ -59,43 +59,6 @@ use chrono::serde::ts_seconds;
 
 static MEDIAS: Lazy<Mutex<Vec<Media>>> = Lazy::new(|| Mutex::new(vec![]));
 
-// なぜかandroidのreactplayerで再生できないのでcoverを削除してみる
-fn modify_mp4(path: std::path::PathBuf) {
-    if let Some(filename) = path.file_name() {
-        let filename = filename.to_string_lossy().to_string();
-        let tag = mp4ameta::Tag::read_from_path(path.clone());
-        match tag {
-            Ok(tag) => {
-                // tag check
-                /*
-                println!("mp4 tag: {}", filename.clone());
-                let data = tag.data();
-                for datum in data {
-                    if let Some(dat) = datum.1.clone().into_string() {
-                        println!("id {}, {}", datum.0.to_string(), dat);
-                    }else{
-                        println!("id {}, [dat]", datum.0.to_string());
-                    }
-                }
-                */
-
-                // なぜかandroidのreactplayerで再生できないのでcoverを削除してみる
-                if let Some(_) = tag.artwork() {
-                    let mut newtag = tag.clone();
-                    newtag.remove_artworks();
-                    //let _ = std::fs::copy(path.clone(), filename.clone());
-                    if let Err(r) = newtag.write_to_path(path.clone()) {
-                        println!("mp4 tag write fail: {}", r);
-                    }else{
-                        println!("mp4 tag write ok");
-                    }
-                }
-            },
-            Err(tag) => println!("mp4 ng: {} {}", filename.clone(), tag),
-        }
-    }
-}
-
 fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
     let mut files: Vec<Media> = Vec::new();
     let sstring = set.str.split_whitespace();
@@ -122,11 +85,6 @@ fn find_files_core(set: SSetting) -> Result<Vec<Media>, Error> {
                     let pathstr = path.to_string_lossy().to_string();
                     if let Some(filename) = path.file_name() {
                         let filename = filename.to_string_lossy().to_string();
-
-                        // なぜかandroidのreactplayerで再生できないのでcoverを削除してみる
-                        if cfg!(windows) {
-                            modify_mp4(path.clone());
-                        }
 
                         // let ok = filename.contains(&set.str);
                         let mut ok = true;
